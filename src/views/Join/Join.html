@@ -1,0 +1,19 @@
+<section class="join">
+    <v-layout justify-center>
+      <v-flex md6>
+        <v-card>
+          <v-card-text class="text-xs-center pt-4" v-if="invitationStatus.pending">
+            <v-progress-circular :size="90" :width="10" color="primary" indeterminate></v-progress-circular>
+            <p class="mt-4">Waiting for approval to join {{$route.query.team}}</p>
+          </v-card-text>
+          <v-card-text class="text-xs-center pt-4" v-if="!invitationStatus.pending && !invitationStatus.accepted">
+            <v-icon>
+              fa-times
+            </v-icon>
+            <p class="mt-4">Oops... something went wrong.<br>Try again later.</p>
+          </v-card-text>
+          
+        </v-card>
+      </v-flex>
+    </v-layout>  
+</section>

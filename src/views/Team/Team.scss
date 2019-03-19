@@ -1,0 +1,65 @@
+.team {
+    #yourcam{
+        position: fixed;
+        z-index: 3;
+        width: 10%;
+        &.big{
+            min-width: 300px;
+            bottom: 1em;
+            left: 1em;
+        }
+        &.small{
+            bottom: 1em;
+            left: 1em;
+            width: 175px;
+        }
+        #video{
+            margin-bottom: -6px;
+        }
+        .badge{
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+    }
+    .teammembers{
+        &.desktopSharing{
+            max-height: 200px;
+            margin-top: -150px;
+            margin-right: -18px;
+            margin-bottom: 10px;
+            .teammember{
+                min-width: 0;
+                flex: none!important;
+            }
+        }
+        .teammember{
+            height: 100%;
+            min-width: 30%;
+            overflow: hidden;
+            video {
+                height: auto;
+                width: 100%;
+                max-height: 100%;
+                max-width: 100%;
+            }
+            .badge{
+                position: absolute;
+                top: 0;
+                width: 100%;
+            }
+        }
+    }
+    .scroll{
+        overflow: auto;
+    }
+
+    .ontop {
+        z-index: 2;
+    }
+    .speakingdot {
+        position: absolute;
+        left: 16px;
+        top: 5px;
+    }
+}

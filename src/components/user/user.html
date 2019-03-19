@@ -1,0 +1,27 @@
+<section class="user pa-2">
+  <v-layout :class="itsme? 'accent lighten-2 roundBorder' : 'accent roundBorder'" align-center justify-center row
+    fill-height>
+    <v-flex xs1 class="text-xs-center mx-2  py-2">
+      <v-badge right bottom overlap :color="user.online ? 'success lighten-2' : 'error'">
+        <v-icon color="white" v-if="!user.admin">
+          fas fa-user
+        </v-icon>
+        <v-icon color="white" v-if="user.admin">
+          fas fa-user-crown
+        </v-icon>
+        <span slot="badge" v-if="!itsme"></span>
+      </v-badge>
+    </v-flex>
+    <v-flex class="white--text">
+      {{user.name}} <span v-if="user.location">({{user.location}})</span>
+    </v-flex>
+    <!-- TODO FIX KICK -->
+    <v-flex xs2 class="grey lighten-3 text-xs-center py-2" v-if="!user.admin && isAdmin">
+      <v-btn @click="makeAdmin(user.name)" icon small>
+        <v-icon color="black">
+          fas fa-user-crown
+        </v-icon>
+      </v-btn>
+    </v-flex>
+  </v-layout>
+</section>

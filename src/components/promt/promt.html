@@ -1,0 +1,16 @@
+<section class="promt">
+  <v-dialog v-model="askData" width="500" persistent v-if="promptMessage">
+    <v-card>
+      <v-card-title class="headline" primary-title v-html="promptMessage.title"></v-card-title>
+      <v-card-text>
+        <p v-html="promptMessage.body"></p>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn flat @click="executeCancelAction">{{promptMessage.cancelMessage || 'cancel'}}</v-btn>
+        <v-btn flat @click='executeOkAction'>{{promptMessage.okMessage || 'ok'}}</v-btn>
+      </v-card-actions>
+    </v-card>
+
+  </v-dialog>
+</section>
