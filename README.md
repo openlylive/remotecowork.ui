@@ -1,4 +1,4 @@
-# RemoteCowork
+# remotecowork.ui
 
 ## Project setup
 ```
