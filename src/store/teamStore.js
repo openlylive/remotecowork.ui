@@ -441,7 +441,7 @@ export default ({
     },
     userRejoined (context, payload) {
       return new Promise((resolve, reject) => {
-        var teamMembers = context.getters['teamMembers'].filter(t => t.online)
+        var teamMembers = context.getters['teamMembers']
         const usersThatWillGetARejoinMessage = teamMembers.filter(t => t.name !== payload.from)
         if (teamMembers.some(x => x.name === payload.from) && usersThatWillGetARejoinMessage.length) {
           usersThatWillGetARejoinMessage.forEach(teamMember => {
