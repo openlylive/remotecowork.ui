@@ -1,0 +1,20 @@
+.camstream {
+    height: 100%;
+    .fullwidth {
+        width: 100%;
+        height: auto;
+    }
+    .fullheight {
+        height: 100%;
+        width: auto;
+    }
+    video{
+        text-align: center
+    }
+    .options {
+        z-index: 10;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+}

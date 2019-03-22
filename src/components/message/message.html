@@ -1,0 +1,28 @@
+<section class="message ma-2">
+  <div v-if="message.type && message.type == 'systemMessage'" class="text-xs-center font-weight-thin">
+    --- {{message.body}} ---
+  </div>
+  <v-layout column v-else :class="messageClass">
+    <v-flex>
+      <v-layout>
+        <span class="font-weight-thin">{{message.from}}</span> <br>
+        <v-spacer></v-spacer>
+        <span class="font-weight-thin">{{moment(message.time).format('HH:mm')}}</span>
+      </v-layout>
+      <span v-html="body" class="body-2 font-weight-bold messagebody" ></span>
+      <vue-markdown style="display:none" @rendered="rendered" :source="message.body"></vue-markdown>
+      <v-layout class="footer">
+        <v-spacer></v-spacer>
+        <v-tooltip bottom v-if="message.body.status == 'success'" class="mr-2">
+          <v-icon small slot="activator" color="accent lighten-2">fas fa-lock-alt</v-icon>
+          <span>Message decrypted</span>
+        </v-tooltip>
+        <v-tooltip bottom v-if="signed || forged">
+          <v-icon small slot="activator" :color="forged ? 'error' : 'accent lighten-2'" dark>fas fa-signature</v-icon>
+          <span v-if="signed">Signature verified</span>
+          <span v-if="forged">Signature fails verification</span>
+        </v-tooltip>
+      </v-layout>
+    </v-flex>
+  </v-layout>
+</section>

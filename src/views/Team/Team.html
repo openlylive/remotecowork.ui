@@ -1,0 +1,181 @@
+<section class="team">
+  <v-dialog v-model="selectBitrate" width="500" persistent v-if="dialogSelectBitrate">
+    <v-card>
+      <v-card-title class="headline" primary-title>Select your preferred bitrate (kbit)</v-card-title>
+      <v-card-text>
+        <v-select v-model="select" :items="bitrates" item-text='text' item-value='bitrate' label="Bitrate" solo></v-select>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn flat @click='resetSelectBitrate'>Close</v-btn>
+        <v-btn flat @click='selectBitrate'>Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-btn class="accent" fab fixed bottom right v-show="!showChat" @click="showChat = true">
+    <v-icon>
+      fa-comment
+    </v-icon>
+  </v-btn>
+  <v-card id="yourcam" :class="$vuetify.breakpoint.mdAndUp? 'big' : 'small'">
+    <div class="badge primary lighten-1  px-2 py-1 ">
+      <p class="white--text text-xs-center mb-0">Your cam</p>
+    </div>
+    <camstream muted id="localstream" showoptions>
+      <v-layout align-center justify-center class="options" slot="options">
+        <v-btn fab small class="primary" @click="toggleAudio">
+          <v-icon small v-if="!audioMuted">fas fa-microphone</v-icon>
+          <v-icon small v-else>fas fa-microphone-slash</v-icon>
+        </v-btn>
+        <v-btn fab small class="primary" @click="toggleVideo">
+          <v-icon small v-if="!videoMuted">fas fa-video</v-icon>
+          <v-icon small v-else>fas fa-video-slash</v-icon>
+        </v-btn>
+        <v-btn fab small class="primary" @click="toggleScreenShare" v-if="$vuetify.breakpoint.mdAndUp">
+          <v-icon small v-if="screensharing">fas fa-stop</v-icon>
+          <v-icon small v-else>fas fa-desktop</v-icon>
+        </v-btn>
+        <v-btn fab small class="primary" @click="dialogSelectBitrate = true">
+          <v-icon small>fas fa-tachometer-alt</v-icon>
+        </v-btn>
+      </v-layout>
+    </camstream>
+  </v-card>
+  <v-navigation-drawer v-model="showChat" hide-overlay app right fixed id="sideBar">
+    <v-toolbar tabs color="primary lighten-1">
+      <v-layout align-center fill-height>
+        <v-flex xs1>
+        </v-flex>
+        <v-flex class="text-xs-center headline white--text">
+          Chat
+        </v-flex>
+        <v-flex xs1 text-xs-right>
+          <v-btn icon @click="showChat = false">
+            <v-icon small color="white">
+              fas fa-times
+            </v-icon>
+          </v-btn>
+        </v-flex>
+      </v-layout>
+      <v-tabs slot="extension" color="transparent" grow slider-color="white" v-model="activeSideTab">
+        <v-tab href="#tab-chat">
+          <v-icon color="white">fas fa-comments</v-icon>
+        </v-tab>
+        <v-tab href="#tab-users">
+          <v-icon color="white">fas fa-users</v-icon>
+        </v-tab>
+      </v-tabs>
+    </v-toolbar>
+    <v-tabs-items v-model="activeSideTab">
+      <v-tab-item value="tab-chat">
+        <v-container absolute fluid class="pa-0" fill-height>
+          <v-layout column fill-height justify-space-between>
+            <v-flex class="scroll" v-autoscroll>
+              <message :message="message" v-for="(message, index) in messages" :key="index" :mine="message.from == user.name" />
+            </v-flex>
+            <div>
+              <v-layout>
+                <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
+                  <v-btn slot="activator" flat icon>
+                    <v-icon>
+                      fas fa-smile
+                    </v-icon>
+                  </v-btn>
+                  <picker native :color="$vuetify.theme.accent" emoji="point_up_2" title="Pick your emoji" @select="emojiSelection" />
+                </v-menu>
+                <v-textarea @keydown.enter.exact.prevent @keyup.enter.exact="checkAndSendMessage" :key="chatMessageKey"
+                  autofocus label="Message" box v-model="message" append-icon="send" @click:append="checkAndSendMessage"
+                  persistent-hint :hint="randomHint" rows="1" auto-grow autoFocus />
+              </v-layout>
+            </div>
+          </v-layout>
+        </v-container>
+      </v-tab-item>
+      <v-tab-item value="tab-users">
+        <v-container absolute fluid class="pa-0" fill-height>
+          <v-layout column fill-height justify-space-between>
+            <v-flex>
+              <user v-for="(teamMember, index) in teamMembers" :key="index" :user='teamMember' :isAdmin="teamMembers.some(x => x.name === user.name && x.admin)"
+                :itsme="user.name === teamMember.name" />
+            </v-flex>
+            <div>
+              <v-btn block @click="invite" class="accent" flat v-if="teamMembers.some(x => x.name === user.name && x.admin)">
+                <v-icon left small>
+                  fas fa-plus
+                </v-icon>
+                Invite someone
+              </v-btn>
+              <v-btn block @click="leave" class="primary" flat>
+                <v-icon left small>
+                  fas fa-sign-out-alt
+                </v-icon>
+                Leave this place
+              </v-btn>
+            </div>
+          </v-layout>
+        </v-container>
+      </v-tab-item>
+    </v-tabs-items>
+    </v-layout>
+  </v-navigation-drawer>
+  <v-container grid-list-md fluid class="pa-0" v-if="teamMembers.filter(x => x.online && x.name !== user.name).length >= 1 && noiseMaker">
+    <v-layout>
+      <v-flex :style="$vuetify.breakpoint.mdAndUp || someoneScreenSharing ? 'display:block' : 'display:none'" >
+        <v-card class="desktopcard">
+          <div class="badge primary lighten-1  px-2 py-1 ">
+            <v-layout column>
+              <span class="white--text text-xs-center py-1">{{noiseMaker.name}} <br> ({{noiseMaker.location}})</span>
+              <v-btn class="ontop" absolute right flat icon small color="white" @click="noiseMaker.muted = !noiseMaker.muted">
+                <v-icon small v-if="!noiseMaker.muted">fas fa-volume-up</v-icon>
+                <v-icon small v-if="noiseMaker.muted">fas fa-volume-slash</v-icon>
+              </v-btn>
+            </v-layout>
+          </div>
+          <camstream fillheight muted id="bigScreen" showoptions :streamname="`${noiseMaker ? noiseMaker.name : ''}${someoneScreenSharing ? '-ss' : ''}`"></camstream>
+        </v-card>
+      </v-flex>
+      <v-flex md2 v-if="teamMembers.filter(x => x.online && x.name !== user.name).length >= 1">
+        <v-layout column fill-height justify-space-between>
+          <v-flex class="scroll pa-0">
+            <v-flex v-for="(teamMember, i) in teamMembers" v-if="teamMember.name != user.name && teamMember.online"
+              :key="i" class="teammember">
+              <v-card @click.native="showInbigScreen(teamMember)" style="cursor:pointer">
+                <div class="badge primary lighten-1  px-2 py-1 ">
+                  <v-layout column>
+                    <v-icon class="ontop absolute speakingdot" small color="white" v-if="teamMember.name === noiseMaker.name">
+                      fas fa-circle
+                    </v-icon>
+                    <span class="white--text text-xs-center py-1">{{teamMember.name}} <br> ({{teamMember.location}})</span>
+                    <v-btn class="ontop" absolute right flat icon small color="white" @click="teamMember.muted = !teamMember.muted">
+                      <v-icon small v-if="!teamMember.muted">fas fa-volume-up</v-icon>
+                      <v-icon small v-if="teamMember.muted">fas fa-volume-slash</v-icon>
+                    </v-btn>
+                  </v-layout>
+                </div>
+                <camstream :id="teamMember.streamId.toString()" :muted="teamMember.muted" />
+              </v-card>
+            </v-flex>
+          </v-flex>
+        </v-layout>
+      </v-flex>
+    </v-layout>
+  </v-container>
+
+  <v-dialog v-model="showShare" width="500">
+    <v-card>
+      <v-card-title class="headline" primary-title>
+        Invite more people
+      </v-card-title>
+      <v-card-text>
+        <v-text-field readonly box label="Link" v-model="link" hint="Share this link to everyone in this team"
+          persistent-hint append-icon="file_copy" @click:append="copyUrl"></v-text-field>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="showShare=false" flat>
+          Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</section>

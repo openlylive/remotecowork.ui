@@ -1,0 +1,17 @@
+<section class="errorpage">
+  <v-layout justify-center>
+    <v-flex md6>
+      <v-card>
+        <v-card-text class="text-xs-center pt-4">
+          <v-icon large color="error">
+            fa-times
+          </v-icon>
+          <p class="mt-4" v-html="fatalError && fatalError.text ? fatalError.text : 'Oops... something went wrong.<br>Try again later.'"></p>
+          <v-btn v-if="fatalError && fatalError.action" @click="fatalError.action">
+            {{fatalError.action}}
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-flex>
+  </v-layout>
+</section>

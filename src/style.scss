@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css?family=Barlow+Condensed|Open+Sans');
+
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+h1,
+h2,
+h3,
+.headline,
+.display-2 {
+    font-family: 'Barlow Condensed', sans-serif !important;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+html,
+body,
+.app,
+.application--wrap,
+.v-content.content,
+.v-content__wrap,
+.v-content__wrap > .container.fluid,
+.v-content__wrap > .container.fluid > .team,
+.v-content__wrap > .container.fluid > .team > .container,
+.v-content__wrap > .container.fluid > .team > .container > .layout,
+.v-content__wrap > .container.fluid > .team > .container > .teammembers,
+.v-content__wrap > .container.fluid > .team > .container > .teammembers > .teammember,
+.v-content__wrap > .container.fluid > .team > .container .desktopcard
+{
+    height: 100%;
+}
+.app {
+    .v-content__wrap {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+    .absolute-bottom {
+        position: absolute;
+        bottom: 0;
+    }
+
+    .fw {
+        width: 100%;
+    }
+
+    .content {
+        z-index: 2;
+        &.big{
+            margin-top: -4em;
+        }
+    }
+
+    .v-card,
+    .roundBorder {
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    pre {
+        background: none !important;
+        padding: 0 !important;
+
+        code {
+            &:before {
+                content: ''
+            }
+
+            background: white !important;
+            width: 100%;
+            padding: 5px;
+            overflow: auto;
+        }
+    }
+
+    .user {
+        .v-badge__badge {
+            width: 10px;
+            height: 10px;
+            bottom: -2px;
+            right: -5px;
+        }
+    }
+    #sideBar {
+        .v-window {
+            position: absolute;
+            width: 100%;
+            height: calc(100% - 112px);
+        }
+        .v-window__container,
+        .v-window-item {
+            height: 100%;
+        }
+    }
+}
+
+video {
+    width: 100%;
+    height: auto;
+}
+
+.v-text-field--box .v-label, .v-text-field--outline .v-label {
+    top: 12px !important;
+}
+
+// ANIMATIONS
+.fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to {
+    opacity: 0;
+}
