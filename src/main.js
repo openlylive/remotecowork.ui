@@ -14,7 +14,8 @@ router.beforeEach((to, from, next) => {
       next({
         name: 'location',
         query: {
-          redirect: to.fullPath
+          redirect: to.fullPath,
+          threebotname: to.query.threebotname
         }
       })
     } else {

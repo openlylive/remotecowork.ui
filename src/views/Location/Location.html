@@ -1,6 +1,16 @@
 <section class="location">
   <v-layout justify-center>
     <v-flex md6>
+        <v-dialog v-model="mobile" width="500">
+            <v-card>
+              <v-card-title class="headline" primary-title>Would you like to login using your 3bot application?</v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn flat @click='mobile=false'>No</v-btn>
+                <v-btn flat @click='openInApp'>Yes</v-btn>
+              </v-card-actions>
+            </v-card>
+        </v-dialog>
       <v-card>
         <v-form ref="form" lazy-validation @submit="saveLocation">
           <v-card-text>

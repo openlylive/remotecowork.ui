@@ -57,15 +57,19 @@ export default ({
       })
     },
     fetchUser: (context, name) => {
-      userService.getUserInfo(name).then(d => {
-        context.commit('setUserFetched', {
-          found: true,
-          ready: true
-        })
-      }).catch(e => {
-        context.commit('setUserFetched', {
-          found: false,
-          ready: true
+      return new Promise((resolve, reject) => {
+        userService.getUserInfo(name).then(d => {
+          context.commit('setUserFetched', {
+            found: true,
+            ready: true
+          })
+          resolve()
+        }).catch(e => {
+          context.commit('setUserFetched', {
+            found: false,
+            ready: true
+          })
+          resolve()
         })
       })
     },

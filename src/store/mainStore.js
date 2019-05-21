@@ -10,7 +10,8 @@ export default ({
     promptMessages: [],
     snackbarMessage: '',
     notifier: null,
-    fatalError: null
+    fatalError: null,
+    loginWith3bot: false
   },
   mutations: {
     setErrorMessage: (state, error) => {
@@ -41,28 +42,35 @@ export default ({
     },
     setNotifier: (state, notification) => {
       state.notifier = notification
+    },
+    setLoginWith3bot: (state, loginWith3bot) => {
+      state.loginWith3bot = loginWith3bot
     }
   },
   actions: {
     deletePrompt (context, payload) {
       context.commit('deletePrompt', payload.body)
     },
-    init: async (context) => {
+    init: async (context, threebotname) => {
       context.commit('setUserKeys', { private: '', public: '' })
       crypto.generateAsymmetricKeypair().then(x => {
         context.commit('setUserKeys', x)
+        if (threebotname) {
+          context.dispatch('setUserName', { name: threebotname })
+        }
       }).catch(e => {
         context.commit('setErrorMessage', { text: `Couldn't generate keys, try again later`, extra: e })
       })
     },
     initWithKey: (context, payload) => {
       userService.getUserInfo(payload.name).then(response => {
-        crypto.generatekey(payload.key)
-        context.commit('setUserKeys', { private: payload.key, public: response.data.publicKey })
-        context.dispatch('setUserName', {
-          name: payload.name,
-          teamName: payload.teamName,
-          isKnown: true
+        crypto.generatekey(payload.key).then(r => {
+          context.commit('setUserKeys', { private: payload.key, public: response.data.publicKey })
+          context.dispatch('setUserName', {
+            name: payload.name,
+            teamName: payload.teamName,
+            isKnown: true
+          })
         })
       }).catch(e => {
         cookie.remove('user')
@@ -77,12 +85,14 @@ export default ({
         })
       })
     },
-    setSnackbarMessage: (context, msg) => context.commit('setSnackbarMessage', msg)
+    setSnackbarMessage: (context, msg) => context.commit('setSnackbarMessage', msg),
+    setLoginWith3bot: (context, yesno) => context.commit('setLoginWith3bot', yesno)
   },
   getters: {
     promptMessages: (state) => state.promptMessages,
     snackbarMessage: (state) => state.snackbarMessage,
     notifier: (state) => state.notifier,
-    fatalError: (state) => state.fatalError
+    fatalError: (state) => state.fatalError,
+    loginWith3bot: (state) => state.loginWith3bot
   }
 })

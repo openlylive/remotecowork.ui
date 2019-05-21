@@ -7,6 +7,7 @@ export default {
   props: [],
   data () {
     return {
+      mobile: false,
       location: '',
       loadingLocation: false
     }
@@ -15,10 +16,16 @@ export default {
     ...mapGetters([
       'locations',
       'localJanusLocation',
-      'user'
+      'user',
+      'teamSettings'
     ])
   },
   mounted () {
+    if (!this.$route.query.threebotname) {
+      if (this.isMobile() && !this.loginWith3bot) {
+        this.mobile = true
+      }
+    }
     this.getAllLocations()
   },
   methods: {
@@ -28,6 +35,16 @@ export default {
       'setLocalJanusLocation',
       'initWithKey'
     ]),
+    openInApp () {
+      window.location.href = `threebot://openmeetings/${this.teamSettings.name}`
+    },
+    isMobile () {
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        return true
+      } else {
+        return false
+      }
+    },
     autoLocation () {
       this.loadingLocation = true
       this.getBestLocation().then(locationName => {

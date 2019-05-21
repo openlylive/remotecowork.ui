@@ -13,7 +13,8 @@ export default {
         v => !!v || 'Name is required',
         v => this.nameRegex.test(v) || 'Name must contain 2 sections separated by a dot'
       ],
-      privateKey: ''
+      privateKey: '',
+      loginWith3Bot: false
     }
   },
   computed: {
@@ -23,14 +24,24 @@ export default {
     ])
   },
   mounted () {
+    if (this.$route.query.threebotname) {
+      this.loginWith3Bot = true
+      // this.setUserName(this.$route.query.threebotname);
+      // this.$router.push({"name": "teams"});
+      this.setLoginWith3bot(true)
+      this.fetchUser(this.$route.query.threebotname).then(r => {
+      })
+    }
   },
   methods: {
     ...mapActions([
       'fetchUser',
       'setUserName',
       'initWithKey',
-      'setSnackbarMessage'
+      'setSnackbarMessage',
+      'setLoginWith3bot'
     ]),
+
     sendName (e) {
       e.preventDefault()
       this.fetchUser(this.name)
@@ -79,10 +90,12 @@ export default {
         }
         if (val.name && val.privateKey) {
           if (this.$route.query.redirect) {
+            console.log('wezienweg')
             const redirectTo = this.$route.query.redirect
             var teamName = redirectTo.substr(redirectTo.lastIndexOf('/') + 1, redirectTo.length)
             this.$router.push({ name: 'join', query: { team: teamName } })
           } else {
+            console.log('wezienweg2')
             this.$router.push({
               name: 'teams'
             })
@@ -96,7 +109,7 @@ export default {
       if (val && val.ready && val.found) {
         this.privateKey = ''
       } else if (val && val.ready && !val.found) {
-        this.$store.dispatch('init')
+        this.$store.dispatch('init', this.$route.query.threebotname)
       }
     }
   }

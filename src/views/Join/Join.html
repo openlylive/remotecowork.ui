@@ -4,7 +4,7 @@
         <v-card>
           <v-card-text class="text-xs-center pt-4" v-if="invitationStatus.pending">
             <v-progress-circular :size="90" :width="10" color="primary" indeterminate></v-progress-circular>
-            <p class="mt-4">Waiting for approval to join {{$route.query.team}}</p>
+            <p class="mt-4">Waiting for approval to join {{ken}}</p>
           </v-card-text>
           <v-card-text class="text-xs-center pt-4" v-if="!invitationStatus.pending && !invitationStatus.accepted">
             <v-icon>

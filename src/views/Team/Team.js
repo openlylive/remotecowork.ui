@@ -9,6 +9,7 @@ export default {
   props: [],
   data () {
     return {
+      mobile: false,
       bitrates: [ { bitrate: 0, text: 'Unlimited' },
         { bitrate: 128, text: 'Cap to 128 kbit' },
         { bitrate: 256, text: 'Cap to 256 kbit' },
@@ -48,7 +49,8 @@ export default {
       'someoneScreenSharing',
       'localJanusLocation',
       'noiseMaker',
-      'teamSettings'
+      'teamSettings',
+      'loginWith3bot'
     ]),
     link () {
       var base = `${window.location.protocol}//${window.location.host}`
@@ -108,6 +110,7 @@ export default {
       'closeStreams',
       'setLocalStream'
     ]),
+
     selectBitrate () {
       this.bitrate = this.select
       this.setBitrate(this.select)

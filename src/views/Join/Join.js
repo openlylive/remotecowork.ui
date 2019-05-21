@@ -6,7 +6,9 @@ export default {
   components: {},
   props: [],
   data () {
-    return {}
+    return {
+      ken: ''
+    }
   },
   computed: {
     ...mapGetters([
@@ -16,14 +18,16 @@ export default {
     ])
   },
   mounted () {
-    if (this.$route.query.team &&
+    var ken = this.$route.query.team
+    this.ken = ken.split('?')[0]
+    if (ken &&
       cookie.getJSON('teamsettings') !== undefined &&
       window.localStorage.getItem('teammembers') &&
       cookie.getJSON('teamsettings').name &&
       cookie.getJSON('teamsettings').admins &&
       cookie.getJSON('teamsettings').admins.length &&
       cookie.getJSON('teamsettings').admins.find(a => a.name === this.user.name) &&
-      cookie.getJSON('teamsettings').name.toLowerCase() === this.$route.query.team.toLowerCase()) {
+      cookie.getJSON('teamsettings').name.toLowerCase() === this.ken.toLowerCase()) {
       this.previousTeamSettings({
         settings: cookie.getJSON('teamsettings'),
         list: JSON.parse(window.localStorage.getItem('teammembers'))
@@ -31,8 +35,8 @@ export default {
       this.$router.push({ name: 'team', params: { teamname: cookie.getJSON('teamsettings').name } })
     } else {
       // is not a admin
-      if (this.$route.query.team) {
-        this.sendSymKeyRequest(this.$route.query.team)
+      if (this.ken) {
+        this.sendSymKeyRequest(this.ken)
       }
     }
   },
