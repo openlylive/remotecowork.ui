@@ -1,17 +1,18 @@
 import ab2str from 'arraybuffer-to-string'
 import str2ab from 'string-to-arraybuffer'
+const sodium = require('libsodium-wrappers')
 
 const webCrypto = window.crypto.subtle || window.msCrypto.subtle // TODO: add import for other browsers
 
 const asymmRsaParams = {
   name: 'RSA-OAEP',
-  modulusLength: 4096,
+  modulusLength: 2048,
   publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
   hash: { name: 'SHA-256' }
 }
-const symmRsaParams = {
-  name: 'AES-CBC',
-  length: 256
+const symmAESParams = {
+  name: 'AES-GCM',
+  length: 128
 }
 
 let asymmetricPrivateKey = null
@@ -19,10 +20,11 @@ let encoder = new TextEncoder()
 let decoder = new TextDecoder()
 export default ({
   generateSymmetricKey () {
+    console.log('generateSymmetricKey')
     return new Promise(async (resolve, reject) => {
-      webCrypto.generateKey(symmRsaParams, true, ['encrypt', 'decrypt'])
+      webCrypto.generateKey(symmAESParams, true, ['encrypt', 'decrypt'])
         .then(async (key) => {
-          resolve(this.arrayBufferToPem(await webCrypto.exportKey('raw', key)))
+          resolve(key)
         })
         .catch((err) => {
           reject(err)
@@ -37,12 +39,14 @@ export default ({
         resolve('')
         return
       }
-      var symkey = await webCrypto.importKey('raw', str2ab(key), symmRsaParams, true, ['encrypt', 'decrypt'])
+
+      console.time('symmDecrypt')
       var an = body.iv
       webCrypto.decrypt({
-        ...symmRsaParams,
+        ...symmAESParams,
         iv: an
-      }, symkey, body.ciphertext).then(result => {
+      }, key, body.ciphertext).then(result => {
+        console.timeEnd('symmDecrypt')
         resolve(decoder.decode(result))
       }).catch(e => {
         reject(e)
@@ -60,12 +64,13 @@ export default ({
         resolve('')
         return
       }
-      var symkey = await webCrypto.importKey('raw', str2ab(key), symmRsaParams, true, ['encrypt', 'decrypt'])
+      console.time('symmEncrypt')
       var an = window.crypto.getRandomValues(new Uint8Array(16))
       webCrypto.encrypt({
-        ...symmRsaParams,
+        ...symmAESParams,
         iv: an
-      }, symkey, encoder.encode(text)).then(result => {
+      }, key, encoder.encode(text)).then(result => {
+        console.timeEnd('symmEncrypt')
         resolve({ ciphertext: result, iv: an })
       }).catch(e => {
         reject(e)
@@ -73,6 +78,7 @@ export default ({
     })
   },
   generateAsymmetricKeypair () {
+    console.log('generateAsymmetricKeypair')
     return new Promise((resolve, reject) => {
       webCrypto.generateKey(asymmRsaParams, true, ['encrypt', 'decrypt']).then(async key => {
         asymmetricPrivateKey = this.arrayBufferToPem(await webCrypto.exportKey('pkcs8', key.privateKey), true)
@@ -88,6 +94,7 @@ export default ({
     })
   },
   generatekey (key) {
+    console.log('generatekey')
     return new Promise((resolve, reject) => {
       asymmetricPrivateKey = key
       resolve({
@@ -96,15 +103,20 @@ export default ({
     })
   },
 
-  asymmDecrypt (text) {
+  asymmDecrypt (ciphertext) {
     return new Promise(async (resolve, reject) => {
       if (asymmetricPrivateKey == null) reject(new Error('No privateKey found'))
-      if (!text) {
+      if (!ciphertext) {
         resolve('')
         return
       }
+      console.log('assymDecrypt', asymmetricPrivateKey, ciphertext)
       var privateKey = await webCrypto.importKey('pkcs8', this.pemToArrayBuffer(asymmetricPrivateKey), asymmRsaParams, true, ['decrypt'])
-      webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(text)).then(result => {
+      console.log(privateKey)
+      console.log('ist de ciphertext??', ciphertext)
+      // webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(ciphertext)).then(result => {
+      webCrypto.decrypt(asymmRsaParams, privateKey, ciphertext).then(result => {
+        console.log(result)
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
         reject(e)
@@ -124,6 +136,7 @@ export default ({
       }
 
       webCrypto.encrypt(asymmRsaParams, publicKey, str2ab(text)).then(result => {
+        console.log(result)
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
         reject(e)
@@ -145,5 +158,14 @@ export default ({
     // const b64Final = `-----END ${keyType} KEY-----`
 
     // return `${b64Prefix}\n${ab2str(ab, 'base64')}\n${b64Final}`
+  },
+  pemKeyToKey (symPemKey) {
+    console.log(symPemKey)
+    var key = webCrypto.importKey('raw', str2ab(symPemKey), symmAESParams, true, ['encrypt', 'decrypt'])
+    console.log(key)
+    return key
+  },
+  keyToPemKey (key) {
+    return (ab2str(webCrypto.exportKey('raw', key)))
   }
 })

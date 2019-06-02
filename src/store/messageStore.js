@@ -23,6 +23,7 @@ export default ({
       const teamKey = context.getters['teamSettings'].symKey
       crypto.symmDecrypt(message.body, teamKey).then(x => {
         message.body = x
+        console.log(message)
         context.commit('addMessageToHistory', message)
         context.commit('setNotifier', {
           title: `Message from ${message.from}`,
@@ -34,6 +35,7 @@ export default ({
     },
     sendMessage: (context, message) => {
       console.time('sendMessage')
+      console.log(message)
       var receiver = context.getters.teamMembers.find(u => u.name === message.to)
       if (!receiver) {
       }
@@ -41,11 +43,11 @@ export default ({
       const teamKey = context.getters['teamSettings'].symKey
 
       crypto.symmEncrypt(message.body, teamKey).then(x => {
-        crypto.symmDecrypt(x, teamKey).then(y => {
+        // crypto.symmDecrypt(x, teamKey).then(y => {
 
-        }).catch(e => {
-          context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
-        })
+        // }).catch(e => {
+        //   context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
+        // })
 
         message.body = x
         socketService.sendMessage(message)

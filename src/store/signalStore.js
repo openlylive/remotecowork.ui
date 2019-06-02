@@ -25,6 +25,7 @@ export default ({
           return context.dispatch(message.type, message)
         })
       } else if (!teamKey) {
+        console.log('Not teamkey')
         crypto.asymmDecrypt(message.body).then(x => {
           message.body = x
           context.commit('addToQueue', () => {
@@ -34,6 +35,7 @@ export default ({
           context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
         })
       } else {
+        console.log('Else (dus wel met teamkey?)')
         crypto.symmDecrypt(message.body, teamKey).then(x => {
           if (x) message.body = JSON.parse(x)
           context.commit('addToQueue', () => {
@@ -46,6 +48,8 @@ export default ({
     },
     sendSignal: (context, signal) => {
       const teamKey = context.getters['teamSettings'].symKey
+      console.log(context.getters['teamSettings'])
+      console.log(teamKey)
       crypto.symmEncrypt(JSON.stringify(signal.body), teamKey).then(x => {
         signal.body = x
         socketService.sendSignal(signal)

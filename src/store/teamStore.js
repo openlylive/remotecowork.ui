@@ -5,8 +5,9 @@ import userService from '../services/userService.js'
 import socketService from '../services/socketService.js'
 import groupBy from 'lodash/groupBy'
 import cloneDeep from 'lodash/cloneDeep'
+import ab2str from 'arraybuffer-to-string'
 Vue.use(Vuex)
-
+const webCrypto = window.crypto.subtle
 export default ({
   state: {
     invitationAcceptancePending: false,
@@ -24,7 +25,10 @@ export default ({
   },
   mutations: {
     addTeamMembers: (state, user) => {
+      console.time('addTeamMembers')
       if (!state.teamMembers.some(tm => tm.name === user.name)) state.teamMembers.push(user)
+
+      console.timeEnd('addTeamMembers')
     },
     deleteTeamMembers: (state, username) => {
       var index = state.teamMembers.findIndex(user => user.name === username)
@@ -60,6 +64,7 @@ export default ({
       state.isRejoining = isRejoining
     },
     setTeamSettings (state, settings) {
+      console.log('setting team settings', settings)
       settings.admins = settings.admins.map(x => {
         return {
           name: x.name
@@ -77,6 +82,7 @@ export default ({
       }
     },
     setSymKey (state, key) {
+      console.log('setting sym key team', key)
       if (state.teamSettings) {
         state.teamSettings.symKey = key
       } else {
@@ -156,7 +162,11 @@ export default ({
     },
     acceptUser: (context, payload) => {
       context.commit('setAcceptedWait', true)
-      const symKey = context.getters['teamSettings'].symKey
+      let symKey = context.getters['teamSettings'].symKey
+      console.log(symKey)
+      console.log(context.getters['teamSettings'])
+      console.log(symKey)
+      symKey = ab2str((webCrypto.exportKey('raw', symKey)), 'base64')
       userService.getUserInfo(payload.user).then(async response => {
         var pubKey = response.data.publicKey
         const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
@@ -201,12 +211,14 @@ export default ({
       context.commit('addTeamMembers', newMe)
     },
     requestSymKey (context, payload) {
-      const symKey = context.getters['teamSettings'].symKey
-      const teamMmebers = context.getters['teamMembers']
-      const from = teamMmebers.find(tm => tm.name === payload.from)
+      const symKey = crypto.keyToPemKey(context.getters['teamSettings'].symKey)
+      const teamMebers = context.getters['teamMembers']
+      const from = teamMebers.find(tm => tm.name === payload.from)
       if (from) {
         userService.getUserInfo(payload.from).then(async response => {
+          console.log(response)
           const encryptedSymKey = crypto.asymmEncrypt(symKey, response.data.publicKey)
+          console.log(encryptedSymKey)
           socketService.sendSignal({
             type: 'accessGrantedKnown',
             body: await encryptedSymKey,
@@ -217,7 +229,7 @@ export default ({
         context.commit('addPromptMessage', {
           id: payload.body.id,
           title: 'Permission requested',
-          body: `User <strong>${payload.from}</strong> wants to access <strong>${payload.body.teamname}</strong>`,
+          body: `User ${payload.from} wants to access ${payload.body.teamname}`,
           cancelMessage: 'Close the gates',
           okMessage: 'Let him in',
           okAction: 'acceptUser',
@@ -236,10 +248,15 @@ export default ({
     },
     async userAdded (context, payload) {
       return new Promise((resolve, reject) => {
+        console.log('userAdded')
         // todo rewrite bridges
         var user = context.getters.user
         var newUser = payload.body.userInfo
         var symKey = payload.body.newSymKey
+        // pem
+        // symKey = await webCrypto.importKey('raw', str2ab(symKey), symmRsaParams, true, ['encrypt', 'decrypt'])
+        console.log(payload.body)
+        symKey = crypto.pemKeyToKey(symKey)
         context.commit('setSymKey', symKey)
         if (!context.getters.someoneScreenSharing) context.commit('setNoiseMaker', newUser)
 
