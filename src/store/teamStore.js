@@ -252,17 +252,14 @@ export default ({
       }
     },
     async userAdded (context, payload) {
-      return new Promise((resolve, reject) => {
-        console.group('userAdded')
-        console.log(payload)
+      return new Promise(async (resolve, reject) => {
         // todo rewrite bridges
         var user = context.getters.user
         var newUser = payload.body.userInfo
         var symKey = payload.body.newSymKey
         // pem
         // symKey = await webCrypto.importKey('raw', str2ab(symKey), symmRsaParams, true, ['encrypt', 'decrypt'])
-        console.log(payload.body)
-        symKey = crypto.pemKeyToKey(symKey)
+        symKey = await crypto.pemKeyToKey(symKey)
         context.commit('setSymKey', symKey)
         if (!context.getters.someoneScreenSharing) context.commit('setNoiseMaker', newUser)
 
@@ -271,7 +268,6 @@ export default ({
           accepted: true,
           muted: false
         })
-        console.groupEnd()
         if (newUser.name === user.name) return
         context.commit('addTeamMembers', newUser)
         var currentBridges = context.getters.currentBridges
@@ -353,9 +349,9 @@ export default ({
       })
     },
     async userInitialized (context, payload) {
-      return new Promise((resolve, reject) => {
-        console.group('userInitialized')
+      return new Promise(async (resolve, reject) => {
         var newSymKey = context.getters['teamSettings'].symKey // todo change?
+        var newSymKeyB64 = await crypto.keyToPemKey(newSymKey)
         var teamName = context.getters['teamSettings'].name
         var teammembers = context.getters['teamMembers']
         userService.getUserInfo(payload.from).then(userInfo => {
@@ -373,12 +369,11 @@ export default ({
           userInfo.data.muted = false
           if (!teammembers.find(t => t.name === payload.from)) {
             context.getters.teamMembers.forEach(teammember => {
-              console.log(teammember)
               context.dispatch('sendSignal', {
                 type: 'userAdded',
                 body: {
                   userInfo: userInfo.data,
-                  newSymKey: newSymKey
+                  newSymKey: newSymKeyB64
                 },
                 to: teammember.name
               })
@@ -393,7 +388,6 @@ export default ({
           context.commit('setErrorMessage', { text: `Couldn't get user info for ${payload.from}`, extra: e })
           resolve()
         })
-        console.groupEnd()
       })
     },
     userLeft (context, payload) {

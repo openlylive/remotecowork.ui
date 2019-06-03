@@ -242,6 +242,7 @@ export default ({
       })
     },
     streamopened: (context, payload) => {
+      console.log('stream opened??????')
       var teamMembers = context.getters['teamMembers']
       var info = payload.body
       var teammember = teamMembers.find(teammember => teammember.name === payload.from)

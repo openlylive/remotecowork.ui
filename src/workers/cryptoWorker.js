@@ -1,6 +1,6 @@
 import ab2str from 'arraybuffer-to-string'
 import str2ab from 'string-to-arraybuffer'
-const sodium = require('libsodium-wrappers')
+// const sodium = require('libsodium-wrappers')
 
 const webCrypto = window.crypto.subtle || window.msCrypto.subtle // TODO: add import for other browsers
 
@@ -166,7 +166,10 @@ export default ({
     var key = webCrypto.importKey('raw', str2ab(symPemKey), symmAESParams, true, ['encrypt', 'decrypt'])
     return key
   },
-  keyToPemKey (key) {
-    return (ab2str(webCrypto.exportKey('raw', key)))
+  async keyToPemKey (key) {
+    return new Promise(async (resolve, reject) => {
+      var hmm = ab2str(await webCrypto.exportKey('raw', key), 'base64')
+      resolve(hmm)
+    })
   }
 })
