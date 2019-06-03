@@ -20,10 +20,11 @@ let encoder = new TextEncoder()
 let decoder = new TextDecoder()
 export default ({
   generateSymmetricKey () {
-    console.log('generateSymmetricKey')
     return new Promise(async (resolve, reject) => {
+      console.time('generateSymmetricKey')
       webCrypto.generateKey(symmAESParams, true, ['encrypt', 'decrypt'])
         .then(async (key) => {
+          console.timeEnd('generateSymmetricKey')
           resolve(key)
         })
         .catch((err) => {
@@ -64,13 +65,16 @@ export default ({
         resolve('')
         return
       }
-      console.time('symmEncrypt')
+      let int = Math.floor(Math.random() * Math.floor(10))
+      console.time('symmEncrypt_' + int)
+      console.time('getRandomValues' + int)
       var an = window.crypto.getRandomValues(new Uint8Array(16))
+      console.timeEnd('getRandomValues' + int)
       webCrypto.encrypt({
         ...symmAESParams,
         iv: an
       }, key, encoder.encode(text)).then(result => {
-        console.timeEnd('symmEncrypt')
+        console.timeEnd('symmEncrypt_' + int)
         resolve({ ciphertext: result, iv: an })
       }).catch(e => {
         reject(e)
@@ -78,7 +82,6 @@ export default ({
     })
   },
   generateAsymmetricKeypair () {
-    console.log('generateAsymmetricKeypair')
     return new Promise((resolve, reject) => {
       webCrypto.generateKey(asymmRsaParams, true, ['encrypt', 'decrypt']).then(async key => {
         asymmetricPrivateKey = this.arrayBufferToPem(await webCrypto.exportKey('pkcs8', key.privateKey), true)
@@ -94,7 +97,6 @@ export default ({
     })
   },
   generatekey (key) {
-    console.log('generatekey')
     return new Promise((resolve, reject) => {
       asymmetricPrivateKey = key
       resolve({
@@ -110,13 +112,11 @@ export default ({
         resolve('')
         return
       }
-      console.log('assymDecrypt', asymmetricPrivateKey, ciphertext)
+      console.time('asymmDecrypt')
       var privateKey = await webCrypto.importKey('pkcs8', this.pemToArrayBuffer(asymmetricPrivateKey), asymmRsaParams, true, ['decrypt'])
-      console.log(privateKey)
-      console.log('ist de ciphertext??', ciphertext)
       // webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(ciphertext)).then(result => {
       webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(ciphertext)).then(result => {
-        console.log(result)
+        console.time('asymmDecrypt')
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
         reject(e)
@@ -124,14 +124,10 @@ export default ({
     })
   },
   async asymmEncrypt (text, pubKey) {
-    console.group('[asymmEncrypt]')
-    var key = this.pemToArrayBuffer(pubKey)
-    console.log('text', text)
-    console.log('pubKey', pubKey)
-    console.log('key', key)
-    var publicKey = await webCrypto.importKey('spki', key, asymmRsaParams, true, ['encrypt'])
-    console.log(publicKey)
     return new Promise(async (resolve, reject) => {
+      console.time('asymmEncrypt')
+      var key = this.pemToArrayBuffer(pubKey)
+      var publicKey = await webCrypto.importKey('spki', key, asymmRsaParams, true, ['encrypt'])
       if (publicKey == null) reject(new Error('No public key found'))
       if (!text) {
         resolve('')
@@ -139,7 +135,7 @@ export default ({
       }
 
       webCrypto.encrypt(asymmRsaParams, publicKey, str2ab(text)).then(result => {
-        console.log(result)
+        console.timeEnd('asymmEncrypt')
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
         reject(e)
@@ -162,13 +158,18 @@ export default ({
 
     // return `${b64Prefix}\n${ab2str(ab, 'base64')}\n${b64Final}`
   },
-  pemKeyToKey (symPemKey) {
-    var key = webCrypto.importKey('raw', str2ab(symPemKey), symmAESParams, true, ['encrypt', 'decrypt'])
+  async pemKeyToKey (symPemKey) {
+    console.time('pemKeyToKey')
+    var key = await webCrypto.importKey('raw', str2ab(symPemKey), symmAESParams, true, ['encrypt', 'decrypt'])
+    console.log('key:', key)
+    console.timeEnd('pemKeyToKey')
     return key
   },
   async keyToPemKey (key) {
+    console.time('keyToPemKey')
     return new Promise(async (resolve, reject) => {
       var hmm = ab2str(await webCrypto.exportKey('raw', key), 'base64')
+      console.timeEnd('keyToPemKey')
       resolve(hmm)
     })
   }

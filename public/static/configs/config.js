@@ -1,3 +1,3 @@
 export default {
-  nodeserver: 'https://cowork-lochristi.threefold.work:3000'
+  nodeserver: 'https://co-work.jimber.org:3000'
 }

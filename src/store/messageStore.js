@@ -10,9 +10,7 @@ export default ({
   },
   mutations: {
     addMessageToHistory: (state, message) => {
-      console.time('addMessageToHistory')
       state.messages.push(message)
-      console.timeEnd('addMessageToHistory')
     },
     clearHistory: (state) => {
       state.messages = []
@@ -23,7 +21,6 @@ export default ({
       const teamKey = context.getters['teamSettings'].symKey
       crypto.symmDecrypt(message.body, teamKey).then(x => {
         message.body = x
-        console.log(message)
         context.commit('addMessageToHistory', message)
         context.commit('setNotifier', {
           title: `Message from ${message.from}`,
@@ -34,8 +31,6 @@ export default ({
       })
     },
     sendMessage: (context, message) => {
-      console.time('sendMessage')
-      console.log(message)
       var receiver = context.getters.teamMembers.find(u => u.name === message.to)
       if (!receiver) {
       }
@@ -51,17 +46,13 @@ export default ({
 
         message.body = x
         socketService.sendMessage(message)
-        console.timeEnd('sendMessage')
       }).catch(e => {
         context.commit('setErrorMessage', { text: `Couldn't encrypt message, try again later`, extra: e })
       })
     },
     sendMessageToEveryone (context, messageBody) {
-      console.time('sendMessageToEveryone')
       var me = context.getters['user']
       var teamMembers = context.getters['teamMembers'].filter(x => x.name !== me.name)
-
-      console.time('sendCommit')
       var msg = {
         from: me.name,
         to: me.name,
@@ -69,17 +60,13 @@ export default ({
         body: messageBody
       }
       context.commit('addMessageToHistory', msg)
-      console.timeEnd('sendCommit')
       teamMembers.forEach(tm => {
-        console.time('sendMessageToEveryone - loop')
         // TODO Improve, we can now only encrypt once and send to everyone :)
         context.dispatch('sendMessage', {
           to: tm.name,
           body: messageBody
         })
-        console.timeEnd('sendMessageToEveryone - loop')
       })
-      console.timeEnd('sendMessageToEveryone')
     }
   },
   getters: {

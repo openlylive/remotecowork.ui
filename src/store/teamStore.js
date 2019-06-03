@@ -25,10 +25,7 @@ export default ({
   },
   mutations: {
     addTeamMembers: (state, user) => {
-      console.time('addTeamMembers')
       if (!state.teamMembers.some(tm => tm.name === user.name)) state.teamMembers.push(user)
-
-      console.timeEnd('addTeamMembers')
     },
     deleteTeamMembers: (state, username) => {
       var index = state.teamMembers.findIndex(user => user.name === username)
@@ -138,7 +135,6 @@ export default ({
       })
     },
     accessGranted: async (context, payload) => {
-      console.log('[accessGranted]', payload)
       const symkey = await crypto.pemKeyToKey(payload.body)
       var admin = {
         name: payload.from
@@ -162,21 +158,13 @@ export default ({
       })
     },
     acceptUser: async (context, payload) => {
-      console.group('[acceptUser]')
       context.commit('setAcceptedWait', true)
-      console.log("context.getters['teamSettings'].symKey", context.getters['teamSettings'].symKey)
       let symKey = context.getters['teamSettings'].symKey
-      console.log('symKey', symKey)
       let exportKey = await webCrypto.exportKey('raw', symKey)
       symKey = ab2str(exportKey, 'base64')
-      console.log('symKey after', symKey)
-      console.log('Getting user info')
       userService.getUserInfo(payload.user).then(async response => {
-        console.log('User info:', response.data)
         var pubKey = response.data.publicKey
         const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
-        console.log('encryptedSymKey:', encryptedSymKey)
-        console.groupEnd()
         socketService.sendSignal({
           type: 'accessGranted',
           body: encryptedSymKey,
@@ -214,7 +202,6 @@ export default ({
       })
       socketService.emit('createTeam', { name: payload, admins: [newMe] })
       context.commit('isRejoining', false)
-
       context.commit('addTeamMembers', newMe)
     },
     requestSymKey (context, payload) {
