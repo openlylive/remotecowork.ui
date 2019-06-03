@@ -41,6 +41,7 @@ export default ({
       })
     },
     sendSymKeyRequest (context, teamName) {
+      console.log('Sending sym key request')
       context.commit('setInvitationStatus', {
         pending: true,
         accepted: false

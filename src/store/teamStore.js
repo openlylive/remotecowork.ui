@@ -138,7 +138,8 @@ export default ({
       })
     },
     accessGranted: async (context, payload) => {
-      const symkey = payload.body
+      console.log('[accessGranted]', payload)
+      const symkey = await crypto.pemKeyToKey(payload.body)
       var admin = {
         name: payload.from
       }
@@ -160,16 +161,22 @@ export default ({
         to: payload.user
       })
     },
-    acceptUser: (context, payload) => {
+    acceptUser: async (context, payload) => {
+      console.group('[acceptUser]')
       context.commit('setAcceptedWait', true)
+      console.log("context.getters['teamSettings'].symKey", context.getters['teamSettings'].symKey)
       let symKey = context.getters['teamSettings'].symKey
-      console.log(symKey)
-      console.log(context.getters['teamSettings'])
-      console.log(symKey)
-      symKey = ab2str((webCrypto.exportKey('raw', symKey)), 'base64')
+      console.log('symKey', symKey)
+      let exportKey = await webCrypto.exportKey('raw', symKey)
+      symKey = ab2str(exportKey, 'base64')
+      console.log('symKey after', symKey)
+      console.log('Getting user info')
       userService.getUserInfo(payload.user).then(async response => {
+        console.log('User info:', response.data)
         var pubKey = response.data.publicKey
         const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
+        console.log('encryptedSymKey:', encryptedSymKey)
+        console.groupEnd()
         socketService.sendSignal({
           type: 'accessGranted',
           body: encryptedSymKey,
@@ -216,9 +223,7 @@ export default ({
       const from = teamMebers.find(tm => tm.name === payload.from)
       if (from) {
         userService.getUserInfo(payload.from).then(async response => {
-          console.log(response)
           const encryptedSymKey = crypto.asymmEncrypt(symKey, response.data.publicKey)
-          console.log(encryptedSymKey)
           socketService.sendSignal({
             type: 'accessGrantedKnown',
             body: await encryptedSymKey,
@@ -248,7 +253,8 @@ export default ({
     },
     async userAdded (context, payload) {
       return new Promise((resolve, reject) => {
-        console.log('userAdded')
+        console.group('userAdded')
+        console.log(payload)
         // todo rewrite bridges
         var user = context.getters.user
         var newUser = payload.body.userInfo
@@ -265,6 +271,7 @@ export default ({
           accepted: true,
           muted: false
         })
+        console.groupEnd()
         if (newUser.name === user.name) return
         context.commit('addTeamMembers', newUser)
         var currentBridges = context.getters.currentBridges
@@ -347,6 +354,7 @@ export default ({
     },
     async userInitialized (context, payload) {
       return new Promise((resolve, reject) => {
+        console.group('userInitialized')
         var newSymKey = context.getters['teamSettings'].symKey // todo change?
         var teamName = context.getters['teamSettings'].name
         var teammembers = context.getters['teamMembers']
@@ -365,6 +373,7 @@ export default ({
           userInfo.data.muted = false
           if (!teammembers.find(t => t.name === payload.from)) {
             context.getters.teamMembers.forEach(teammember => {
+              console.log(teammember)
               context.dispatch('sendSignal', {
                 type: 'userAdded',
                 body: {
@@ -384,6 +393,7 @@ export default ({
           context.commit('setErrorMessage', { text: `Couldn't get user info for ${payload.from}`, extra: e })
           resolve()
         })
+        console.groupEnd()
       })
     },
     userLeft (context, payload) {

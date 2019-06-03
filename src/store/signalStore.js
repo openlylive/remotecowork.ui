@@ -19,6 +19,7 @@ export default ({
   },
   actions: {
     SOCKET_signal: (context, message) => {
+      console.log('[SOCKET_signal]: ' + message.type)
       const teamKey = context.getters['teamSettings'].symKey
       if (noNeedForDecryption.includes(message.type)) {
         context.commit('addToQueue', () => {
@@ -26,8 +27,11 @@ export default ({
         })
       } else if (!teamKey) {
         console.log('Not teamkey')
+        console.log(message.body)
         crypto.asymmDecrypt(message.body).then(x => {
+          console.log('x:', x)
           message.body = x
+          console.log(message.body)
           context.commit('addToQueue', () => {
             return context.dispatch(message.type, message)
           })
@@ -48,8 +52,7 @@ export default ({
     },
     sendSignal: (context, signal) => {
       const teamKey = context.getters['teamSettings'].symKey
-      console.log(context.getters['teamSettings'])
-      console.log(teamKey)
+      console.log('Sending signal', signal)
       crypto.symmEncrypt(JSON.stringify(signal.body), teamKey).then(x => {
         signal.body = x
         socketService.sendSignal(signal)

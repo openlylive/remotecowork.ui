@@ -115,7 +115,7 @@ export default ({
       console.log(privateKey)
       console.log('ist de ciphertext??', ciphertext)
       // webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(ciphertext)).then(result => {
-      webCrypto.decrypt(asymmRsaParams, privateKey, ciphertext).then(result => {
+      webCrypto.decrypt(asymmRsaParams, privateKey, str2ab(ciphertext)).then(result => {
         console.log(result)
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
@@ -124,10 +124,13 @@ export default ({
     })
   },
   async asymmEncrypt (text, pubKey) {
+    console.group('[asymmEncrypt]')
     var key = this.pemToArrayBuffer(pubKey)
-
+    console.log('text', text)
+    console.log('pubKey', pubKey)
+    console.log('key', key)
     var publicKey = await webCrypto.importKey('spki', key, asymmRsaParams, true, ['encrypt'])
-
+    console.log(publicKey)
     return new Promise(async (resolve, reject) => {
       if (publicKey == null) reject(new Error('No public key found'))
       if (!text) {
@@ -160,9 +163,7 @@ export default ({
     // return `${b64Prefix}\n${ab2str(ab, 'base64')}\n${b64Final}`
   },
   pemKeyToKey (symPemKey) {
-    console.log(symPemKey)
     var key = webCrypto.importKey('raw', str2ab(symPemKey), symmAESParams, true, ['encrypt', 'decrypt'])
-    console.log(key)
     return key
   },
   keyToPemKey (key) {

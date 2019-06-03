@@ -5,6 +5,7 @@ export default {
     this.emit('message', message)
   },
   sendSignal (message) {
+    console.log('[sendSignal]', message)
     this.emit('signal', message)
   },
   emit (type, message) {
