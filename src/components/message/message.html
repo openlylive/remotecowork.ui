@@ -11,6 +11,7 @@
       </v-layout>
       <span v-html="body" class="body-2 font-weight-bold messagebody" ></span>
       <vue-markdown style="display:none" @rendered="rendered" :source="message.body"></vue-markdown>
+      <emoji :emoji="{ id: 'santa', skin: 3 }" :size="16" />
       <v-layout class="footer">
         <v-spacer></v-spacer>
         <v-tooltip bottom v-if="message.body.status == 'success'" class="mr-2">

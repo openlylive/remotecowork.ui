@@ -68,6 +68,7 @@ export default {
   watch: {
     user: {
       handler: function (val) {
+        console.log(this.$route.query)
         if (val.name && val.privateKey) {
           if (this.$route.query.redirect) {
             const redirectTo = this.$route.query.redirect

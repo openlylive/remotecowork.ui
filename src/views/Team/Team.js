@@ -1,21 +1,22 @@
 import { mapActions, mapGetters } from 'vuex'
 import copy from 'copy-to-clipboard'
-import { Picker } from 'emoji-mart-vue'
+import { Picker, Emoji } from 'emoji-mart-vue'
+
 export default {
   name: 'team',
   components: {
-    Picker
+    Picker, Emoji
   },
   props: [],
   data () {
     return {
-      bitrates: [ { bitrate: 0, text: 'Unlimited' },
+      bitrates: [{ bitrate: 0, text: 'Unlimited' },
         { bitrate: 128, text: 'Cap to 128 kbit' },
         { bitrate: 256, text: 'Cap to 256 kbit' },
         { bitrate: 512, text: 'Cap to 512 kbit' },
         { bitrate: 1024, text: 'Cap to 1024 kbit' },
         { bitrate: 1500, text: 'Cap to 1500 kbit' },
-        { bitrate: 2000, text: 'Cap to 2000 kbit' } ],
+        { bitrate: 2000, text: 'Cap to 2000 kbit' }],
       select: { bitrate: 256, text: 'Cap to 256 kbit' },
       bitrate: { bitrate: 256, text: 'Cap to 256 kbit' },
       showEmojis: false,

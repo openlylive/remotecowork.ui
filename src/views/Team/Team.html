@@ -3,7 +3,8 @@
     <v-card>
       <v-card-title class="headline" primary-title>Select your preferred bitrate (kbit)</v-card-title>
       <v-card-text>
-        <v-select v-model="select" :items="bitrates" item-text='text' item-value='bitrate' label="Bitrate" solo></v-select>
+        <v-select v-model="select" :items="bitrates" item-text='text' item-value='bitrate' label="Bitrate" solo>
+        </v-select>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -71,17 +72,21 @@
         <v-container absolute fluid class="pa-0" fill-height>
           <v-layout column fill-height justify-space-between>
             <v-flex class="scroll" v-autoscroll>
-              <message :message="message" v-for="(message, index) in messages" :key="index" :mine="message.from == user.name" />
+              <message :message="message" v-for="(message, index) in messages" :key="index"
+                :mine="message.from == user.name" />
             </v-flex>
             <div>
               <v-layout>
+                <emoji :emoji="{ id: 'joy', skin: 3 }" :size="16" />
                 <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
                   <v-btn slot="activator" flat icon>
                     <v-icon>
                       fas fa-smile
                     </v-icon>
                   </v-btn>
-                  <picker native :color="$vuetify.theme.accent" emoji="point_up_2" title="Pick your emoji" @select="emojiSelection" />
+                  <picker native :color="$vuetify.theme.accent" emoji="point_up_2" title="Pick your emoji"
+                    @select="emojiSelection" />
+
                 </v-menu>
                 <v-textarea @keydown.enter.exact.prevent @keyup.enter.exact="checkAndSendMessage" :key="chatMessageKey"
                   autofocus label="Message" box v-model="message" append-icon="send" @click:append="checkAndSendMessage"
@@ -95,11 +100,13 @@
         <v-container absolute fluid class="pa-0" fill-height>
           <v-layout column fill-height justify-space-between>
             <v-flex>
-              <user v-for="(teamMember, index) in teamMembers" :key="index" :user='teamMember' :isAdmin="teamMembers.some(x => x.name === user.name && x.admin)"
+              <user v-for="(teamMember, index) in teamMembers" :key="index" :user='teamMember'
+                :isAdmin="teamMembers.some(x => x.name === user.name && x.admin)"
                 :itsme="user.name === teamMember.name" />
             </v-flex>
             <div>
-              <v-btn block @click="invite" class="accent" flat v-if="teamMembers.some(x => x.name === user.name && x.admin)">
+              <v-btn block @click="invite" class="accent" flat
+                v-if="teamMembers.some(x => x.name === user.name && x.admin)">
                 <v-icon left small>
                   fas fa-plus
                 </v-icon>
@@ -118,20 +125,23 @@
     </v-tabs-items>
     </v-layout>
   </v-navigation-drawer>
-  <v-container grid-list-md fluid class="pa-0" v-if="teamMembers.filter(x => x.online && x.name !== user.name).length >= 1 && noiseMaker">
+  <v-container grid-list-md fluid class="pa-0"
+    v-if="teamMembers.filter(x => x.online && x.name !== user.name).length >= 1 && noiseMaker">
     <v-layout>
-      <v-flex :style="$vuetify.breakpoint.mdAndUp || someoneScreenSharing ? 'display:block' : 'display:none'" >
+      <v-flex :style="$vuetify.breakpoint.mdAndUp || someoneScreenSharing ? 'display:block' : 'display:none'">
         <v-card class="desktopcard">
           <div class="badge primary lighten-1  px-2 py-1 ">
             <v-layout column>
               <span class="white--text text-xs-center py-1">{{noiseMaker.name}} <br> ({{noiseMaker.location}})</span>
-              <v-btn class="ontop" absolute right flat icon small color="white" @click="noiseMaker.muted = !noiseMaker.muted">
+              <v-btn class="ontop" absolute right flat icon small color="white"
+                @click="noiseMaker.muted = !noiseMaker.muted">
                 <v-icon small v-if="!noiseMaker.muted">fas fa-volume-up</v-icon>
                 <v-icon small v-if="noiseMaker.muted">fas fa-volume-slash</v-icon>
               </v-btn>
             </v-layout>
           </div>
-          <camstream fillheight muted id="bigScreen" showoptions :streamname="`${noiseMaker ? noiseMaker.name : ''}${someoneScreenSharing ? '-ss' : ''}`"></camstream>
+          <camstream fillheight muted id="bigScreen" showoptions
+            :streamname="`${noiseMaker ? noiseMaker.name : ''}${someoneScreenSharing ? '-ss' : ''}`"></camstream>
         </v-card>
       </v-flex>
       <v-flex md2 v-if="teamMembers.filter(x => x.online && x.name !== user.name).length >= 1">
@@ -142,11 +152,14 @@
               <v-card @click.native="showInbigScreen(teamMember)" style="cursor:pointer">
                 <div class="badge primary lighten-1  px-2 py-1 ">
                   <v-layout column>
-                    <v-icon class="ontop absolute speakingdot" small color="white" v-if="teamMember.name === noiseMaker.name">
+                    <v-icon class="ontop absolute speakingdot" small color="white"
+                      v-if="teamMember.name === noiseMaker.name">
                       fas fa-circle
                     </v-icon>
-                    <span class="white--text text-xs-center py-1">{{teamMember.name}} <br> ({{teamMember.location}})</span>
-                    <v-btn class="ontop" absolute right flat icon small color="white" @click="teamMember.muted = !teamMember.muted">
+                    <span class="white--text text-xs-center py-1">{{teamMember.name}} <br>
+                      ({{teamMember.location}})</span>
+                    <v-btn class="ontop" absolute right flat icon small color="white"
+                      @click="teamMember.muted = !teamMember.muted">
                       <v-icon small v-if="!teamMember.muted">fas fa-volume-up</v-icon>
                       <v-icon small v-if="teamMember.muted">fas fa-volume-slash</v-icon>
                     </v-btn>

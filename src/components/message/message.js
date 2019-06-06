@@ -1,13 +1,14 @@
 import marked from 'marked'
 import Prism from 'prismjs'
 import VueMarkdown from 'vue-markdown'
+import { Emoji } from 'emoji-mart-vue'
 
 import 'prismjs/themes/prism.css'
 
 export default {
   name: 'message',
   components: {
-    VueMarkdown
+    VueMarkdown, Emoji
   },
   props: [
     'message',
@@ -31,6 +32,7 @@ export default {
       return classes
     },
     body () {
+      console.log(this.message)
       return marked(this.message.body)
     }
   },

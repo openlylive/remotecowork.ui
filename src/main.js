@@ -10,11 +10,16 @@ Vue.config.productionTip = true
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth) && !store.getters.user.name) {
+    console.log(to.fullPath)
+    let pathToRedirect = to.fullPath
+    if (pathToRedirect.includes('/join?team=')) {
+      pathToRedirect = '/teams/' + pathToRedirect.split('=')[1]
+    }
     if (to.name !== 'teams') {
       next({
         name: 'location',
         query: {
-          redirect: to.fullPath
+          redirect: pathToRedirect
         }
       })
     } else {
