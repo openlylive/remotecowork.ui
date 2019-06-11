@@ -77,8 +77,7 @@
             </v-flex>
             <div>
               <v-layout>
-                <emoji :emoji="{ id: 'joy', skin: 3 }" :size="16" />
-                <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
+                <!-- <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
                   <v-btn slot="activator" flat icon>
                     <v-icon>
                       fas fa-smile
@@ -87,7 +86,7 @@
                   <picker native :color="$vuetify.theme.accent" emoji="point_up_2" title="Pick your emoji"
                     @select="emojiSelection" />
 
-                </v-menu>
+                </v-menu> -->
                 <v-textarea @keydown.enter.exact.prevent @keyup.enter.exact="checkAndSendMessage" :key="chatMessageKey"
                   autofocus label="Message" box v-model="message" append-icon="send" @click:append="checkAndSendMessage"
                   persistent-hint :hint="randomHint" rows="1" auto-grow autoFocus />

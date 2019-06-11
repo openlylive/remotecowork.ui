@@ -34,6 +34,7 @@ export default ({
       state.promptMessages.push(message)
     },
     deletePrompt: (state, message) => {
+      console.log(message)
       var index = state.promptMessages.map(msg => msg.id).indexOf(message.id)
       if (index > -1) {
         state.promptMessages.splice(index, 1)

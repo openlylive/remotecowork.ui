@@ -22,3 +22,11 @@ export default new Vuex.Store({
     video
   }
 })
+
+// Maybe ivan can show me where to put this 'clean'
+function escapeHtml (str) {
+  var div = document.createElement('template')
+  div.appendChild(document.createTextNode(str))
+  return div.innerHTML
+}
+window.escapeHtml = escapeHtml

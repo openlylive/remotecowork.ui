@@ -6,7 +6,7 @@ import PromiseQueue from 'easy-promise-queue'
 
 Vue.use(Vuex)
 
-const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft']
+const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft', 'ping', 'pongAdminRequest']
 
 export default ({
   state: {
@@ -19,6 +19,7 @@ export default ({
   },
   actions: {
     SOCKET_signal: (context, message) => {
+      console.log('SIGNAL!', message)
       const teamKey = context.getters['teamSettings'].symKey
       if (noNeedForDecryption.includes(message.type)) {
         context.commit('addToQueue', () => {
@@ -50,7 +51,7 @@ export default ({
         signal.body = x
         socketService.sendSignal(signal)
       }).catch(e => {
-        context.commit('setErrorMessage', { text: `Couldn't encrypt message, try again later`, extra: e })
+        context.commpingit('setErrorMessage', { text: `Couldn't encrypt message, try again later`, extra: e })
       })
     }
   },

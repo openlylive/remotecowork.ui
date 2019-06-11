@@ -1,19 +1,34 @@
 <section class="join">
-    <v-layout justify-center>
-      <v-flex md6>
-        <v-card>
-          <v-card-text class="text-xs-center pt-4" v-if="invitationStatus.pending">
-            <v-progress-circular :size="90" :width="10" color="primary" indeterminate></v-progress-circular>
-            <p class="mt-4">Waiting for approval to join {{$route.query.team}}</p>
-          </v-card-text>
-          <v-card-text class="text-xs-center pt-4" v-if="!invitationStatus.pending && !invitationStatus.accepted">
-            <v-icon>
+  <v-layout justify-center>
+    <v-flex md6>
+      <v-card v-if="!isAdmin">
+        <v-card-text class="text-xs-center pt-4" v-if="invitationStatus.pending && invitationStatus.adminRepliedToPing">
+          <v-progress-circular :size="90" :width="10" color="primary" indeterminate></v-progress-circular>
+          <p class="mt-4">Waiting for approval to join {{$route.query.team}}</p>
+        </v-card-text>
+        <v-card-text class="text-xs-center pt-4" v-if="!invitationStatus.pending && !invitationStatus.accepted">
+          <v-icon size="75">
+            fa-times
+          </v-icon>
+          <p class="mt-4">Oops... something went wrong.<br>Try again later.</p>
+        </v-card-text>
+
+        <v-card-text class="text-xs-center pt-4" v-if="!invitationStatus.adminRepliedToPing">
+          <v-progress-circular :size="90" :width="10" color="primary" indeterminate>
+            <v-icon size="50">
               fa-times
             </v-icon>
-            <p class="mt-4">Oops... something went wrong.<br>Try again later.</p>
-          </v-card-text>
-          
-        </v-card>
-      </v-flex>
-    </v-layout>  
+          </v-progress-circular>
+          <p class="mt-4">
+            Admin is not available at this time.<br>Please hold or check back later.
+          </p>
+        </v-card-text>
+      </v-card>
+      <!-- <v-card v-else>
+        <v-card-text class="text-xs-center pt-4">
+          <v-progress-linear :size="90" :width="10" color="primary" indeterminate></v-progress-linear>
+        </v-card-text>
+      </v-card> -->
+    </v-flex>
+  </v-layout>
 </section>

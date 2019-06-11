@@ -40,8 +40,20 @@ export default ({
         online: true
       })
     },
+    sendPingAdmins (context, teamName) {
+      context.commit('setInvitationStatus', {
+        adminRepliedToPing: false,
+        pending: true,
+        accepted: false
+      })
+      socketService.emit('pingAdmins', {
+        username: context.state.user.name,
+        teamname: teamName
+      })
+    },
     sendSymKeyRequest (context, teamName) {
       context.commit('setInvitationStatus', {
+        adminRepliedToPing: true,
         pending: true,
         accepted: false
       })
@@ -50,10 +62,6 @@ export default ({
       socketService.emit('requestSymKey', {
         teamname: teamName,
         id: id
-      })
-      context.commit('setInvitationStatus', {
-        pending: true,
-        accepted: false
       })
     },
     fetchUser: (context, name) => {

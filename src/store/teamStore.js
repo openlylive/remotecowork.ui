@@ -11,6 +11,7 @@ export default ({
   state: {
     invitationAcceptancePending: false,
     invitationAccepted: false,
+    adminRepliedToPing: false,
     teamMembers: [],
     teamSettings: {},
     isRejoining: true,
@@ -85,6 +86,9 @@ export default ({
         }
       }
     },
+    setAdminRepliedToPing (state) {
+      state.adminRepliedToPing = true
+    },
     setTeamAdmin (state, admins) {
       var newAdmins = admins.map(x => {
         return {
@@ -147,11 +151,21 @@ export default ({
       })
     },
     rejectUser: (context, payload) => {
-      context.dispatch('deletePrompt', payload)
+      console.log(payload)
       socketService.sendSignal({
         type: 'accessDeclined',
         body: '',
         to: payload.user
+      })
+      const admins = context.getters['teamSettings'].admins
+      admins.forEach(admin => {
+        context.dispatch('sendSignal', {
+          to: admin.name,
+          type: 'deletePrompt',
+          body: {
+            id: payload.id
+          }
+        })
       })
     },
     acceptUser: (context, payload) => {
@@ -200,6 +214,18 @@ export default ({
 
       context.commit('addTeamMembers', newMe)
     },
+    ping (context, payload) {
+      console.log(payload.from)
+      socketService.sendSignal({
+        type: 'pongAdminRequest',
+        body: 'pong',
+        to: payload.from
+      })
+    },
+    pongAdminRequest (context, payload) {
+      console.log('Admin replied!')
+      context.commit('setAdminRepliedToPing')
+    },
     requestSymKey (context, payload) {
       const symKey = context.getters['teamSettings'].symKey
       const teamMmebers = context.getters['teamMembers']
@@ -217,7 +243,7 @@ export default ({
         context.commit('addPromptMessage', {
           id: payload.body.id,
           title: 'Permission requested',
-          body: `User <strong>${payload.from}</strong> wants to access <strong>${payload.body.teamname}</strong>`,
+          body: `User <strong>${window.escapeHtml(payload.from)}ss</strong> wants to access <strong>${window.escapeHtml(payload.body.teamname)}</strong>`,
           cancelMessage: 'Close the gates',
           okMessage: 'Let him in',
           okAction: 'acceptUser',
@@ -602,6 +628,7 @@ export default ({
     teamMembers: (state) => state.teamMembers,
     invitationStatus: (state) => {
       return {
+        adminRepliedToPing: state.adminRepliedToPing,
         pending: state.invitationAcceptancePending,
         accepted: state.invitationAccepted
       }

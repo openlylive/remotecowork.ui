@@ -12,8 +12,18 @@ export default {
     ...mapGetters([
       'invitationStatus',
       'teamSettings',
-      'user'
-    ])
+      'user',
+      'teamAdminsAvailable'
+    ]),
+    isAdmin () {
+      let tuce = false
+      try {
+        tuce = cookie.getJSON('teamsettings').admins.some(a => a.name === this.user.name)
+      } catch (e) {
+        tuce = false
+      }
+      return tuce
+    }
   },
   mounted () {
     if (this.$route.query.team &&
@@ -32,7 +42,18 @@ export default {
     } else {
       // is not a admin
       if (this.$route.query.team) {
-        this.sendSymKeyRequest(this.$route.query.team)
+        this.sendPingAdmins(this.$route.query.team).then(() => {
+          this.sendSymKeyRequest(this.$route.query.team)
+          var requestInterval = setInterval(() => {
+            console.log(`Admin replied: ${this.invitationStatus.adminRepliedToPing}`)
+            if (this.invitationStatus.adminRepliedToPing) {
+              clearInterval(requestInterval)
+            } else {
+              this.sendPingAdmins(this.$route.query.team)
+              this.sendSymKeyRequest(this.$route.query.team)
+            }
+          }, 3000)
+        })
       }
     }
   },
@@ -40,6 +61,7 @@ export default {
     ...mapActions([
       'setSnackbarMessage',
       'sendSymKeyRequest',
+      'sendPingAdmins',
       'previousTeamSettings'
     ])
   },
