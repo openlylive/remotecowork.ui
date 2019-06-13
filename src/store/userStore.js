@@ -22,8 +22,8 @@ export default ({
       state.user.name = name
     },
     setUserKeys: (state, keys) => {
-      state.user.privateKey = keys.private
-      state.user.publicKey = keys.public
+      state.user.privateKey = keys.privateKey
+      state.user.publicKey = keys.publicKey
     },
     setUserFetched: (state, userFetched) => {
       state.userFetched = userFetched

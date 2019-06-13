@@ -151,15 +151,12 @@ export default ({
     return new Promise(async (resolve, reject) => {
       // var phrase = bip39.entropyToMnemonic(sodium.randombytes_buf(sodium.crypto_box_SEEDBYTES / 2))
       // var ken = new TextEncoder().encode(bip39.mnemonicToEntropy(phrase))
-      console.log(sodium)
-
       var keys = sodium.crypto_sign_keypair()
-
-      console.log(keys)
-      // resolve({
-      //   privateKey: encodeBase64(keys.privateKey),
-      //   publicKey: encodeBase64(keys.publicKey)
-      // })
+      console.log('resolving...')
+      resolve({
+        privateKey: keys.privateKey,
+        publicKey: keys.publicKey
+      })
     })
   }
 })

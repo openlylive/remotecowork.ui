@@ -50,9 +50,10 @@ export default ({
     },
     init: async (context) => {
       context.commit('setUserKeys', { private: '', public: '' })
-      crypto.generateAsymmetricKeypairLibsodium()
-      crypto.generateAsymmetricKeypair().then(x => {
-        context.commit('setUserKeys', x)
+      // crypto.generateAsymmetricKeypair().then(x => {
+      crypto.generateAsymmetricKeypairLibsodium().then(keyPair => {
+        console.log('thenneben!')
+        context.commit('setUserKeys', keyPair)
       }).catch(e => {
         context.commit('setErrorMessage', { text: `Couldn't generate keys, try again later`, extra: e })
       })
