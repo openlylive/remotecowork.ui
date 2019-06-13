@@ -57,6 +57,14 @@ export default new Router({
       meta: {
         redirectable: false
       }
+    },
+    {
+      path: '/callback',
+      name: 'callback',
+      component: () => import(/* webpackChunkName: "teams" */ './views/Callback'),
+      meta: {
+        redirectable: false
+      }
     }
   ]
 })

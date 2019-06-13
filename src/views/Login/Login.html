@@ -12,6 +12,7 @@
                 required v-model="name"></v-text-field>
             </v-card-text>
             <v-card-actions>
+              <v-btn v-on:click="loginWith3Bot" flat>Log in with 3Bot</v-btn>
               <v-spacer></v-spacer>
               <v-btn :disabled="!valid" type="submit" flat>Send name</v-btn>
             </v-card-actions>

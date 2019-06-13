@@ -1,6 +1,6 @@
 import ab2str from 'arraybuffer-to-string'
 import str2ab from 'string-to-arraybuffer'
-
+const sodium = require('libsodium-wrappers')
 const webCrypto = window.crypto.subtle || window.msCrypto.subtle // TODO: add import for other browsers
 
 const asymmRsaParams = {
@@ -145,5 +145,21 @@ export default ({
     // const b64Final = `-----END ${keyType} KEY-----`
 
     // return `${b64Prefix}\n${ab2str(ab, 'base64')}\n${b64Final}`
+  },
+  // all libdosium here
+  generateAsymmetricKeypairLibsodium () {
+    return new Promise(async (resolve, reject) => {
+      // var phrase = bip39.entropyToMnemonic(sodium.randombytes_buf(sodium.crypto_box_SEEDBYTES / 2))
+      // var ken = new TextEncoder().encode(bip39.mnemonicToEntropy(phrase))
+      console.log(sodium)
+
+      var keys = sodium.crypto_sign_keypair()
+
+      console.log(keys)
+      // resolve({
+      //   privateKey: encodeBase64(keys.privateKey),
+      //   publicKey: encodeBase64(keys.publicKey)
+      // })
+    })
   }
 })

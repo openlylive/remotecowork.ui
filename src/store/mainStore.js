@@ -50,6 +50,7 @@ export default ({
     },
     init: async (context) => {
       context.commit('setUserKeys', { private: '', public: '' })
+      crypto.generateAsymmetricKeypairLibsodium()
       crypto.generateAsymmetricKeypair().then(x => {
         context.commit('setUserKeys', x)
       }).catch(e => {

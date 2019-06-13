@@ -6,6 +6,7 @@ import './plugins'
 import './components'
 import './directives'
 import './style.scss'
+
 Vue.config.productionTip = true
 
 router.beforeEach((to, from, next) => {

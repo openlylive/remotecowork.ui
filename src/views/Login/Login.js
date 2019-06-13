@@ -1,5 +1,8 @@
 import { mapGetters, mapActions } from 'vuex'
 import copy from 'copy-to-clipboard'
+import randomstring from 'randomstring'
+import config from '../../../public/static'
+
 export default {
   name: 'login',
   components: {},
@@ -23,6 +26,11 @@ export default {
     ])
   },
   mounted () {
+    window.addEventListener('message', (e) => {
+      if (e.data.type === '3botlogin-finished') {
+        this.loginWith3BotFinished(e.data.data)
+      }
+    })
   },
   methods: {
     ...mapActions([
@@ -69,6 +77,31 @@ export default {
       } else {
         this.setSnackbarMessage(`Can't copy if I don't have it`)
       }
+    },
+    loginWith3Bot () {
+      var state = randomstring.generate()
+      // var keys = await CryptoService.generateKeys(config.seedPhrase)
+      var appid = 'RemoteWork'
+      var scope = 'user:derivativekey'
+      var publicKey = 'xKHlaIyza5dSxswOmvuYV7MDreIbLllK9T0n3c1tu0g='
+      window.localStorage.setItem('state', state)
+      //        window.location.href = `${config.botForntEnd}?state=${state}&scope=${scope}&appid=${appid}&publickey=${encodeURIComponent(CryptoService.getEdPkInCurve(keys.publicKey))}&redirecturl=${config.redirect_url}/callback`
+      var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${appid}&publickey=${publicKey}&redirecturl=${encodeURIComponent(config.redirect_url)}`
+      console.log(urlleke)
+      let w = 400
+      let h = 500
+      var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX
+      var dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY
+      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+      var systemZoom = width / window.screen.availWidth
+      var left = ((width - w) / 2 / systemZoom + dualScreenLeft) - w / 2
+      var top = (height - h) / 2 / systemZoom + dualScreenTop
+      window.open(`${urlleke}`, 'popUpWindow', `left=${left},top=${top},height=500,width=400,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=yes`)
+    },
+    loginWith3BotFinished (data) {
+      console.log('login with 3bot finished!', data)
+      this.name = data.username
     }
   },
   watch: {
