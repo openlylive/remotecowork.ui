@@ -19,9 +19,12 @@ export default ({
   },
   mutations: {
     setUserName: (state, name) => {
+      console.log('setUserName userstore')
       state.user.name = name
     },
     setUserKeys: (state, keys) => {
+      console.log('Setting user keys')
+      console.log(state.user)
       state.user.privateKey = keys.privateKey
       state.user.publicKey = keys.publicKey
     },
@@ -31,6 +34,7 @@ export default ({
   },
   actions: {
     setUserName: (context, payload) => {
+      console.log('setusername action', payload)
       context.commit('setUserName', payload.name)
       socketService.emit('identify', {
         name: payload.name,

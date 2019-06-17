@@ -44,6 +44,15 @@ export default ({
         })
       } else {
         console.log('toetje 2')
+        console.log(message.body, teamKey)
+        crypto.symmDecrypt(message.body, teamKey).then(x => {
+          if (x) message.body = JSON.parse(x)
+          context.commit('addToQueue', () => {
+            return context.dispatch(message.type, message)
+          })
+        }).catch(e => {
+          context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
+        })
         crypto.symmDecrypt(message.body, teamKey).then(x => {
           if (x) message.body = JSON.parse(x)
           context.commit('addToQueue', () => {

@@ -45,6 +45,7 @@ export default {
     },
     identify (e) {
       e.preventDefault()
+      console.log('wtf?')
       this.setUserName({
         name: this.name
       })

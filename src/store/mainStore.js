@@ -34,7 +34,6 @@ export default ({
       state.promptMessages.push(message)
     },
     deletePrompt: (state, message) => {
-      console.log(message)
       var index = state.promptMessages.map(msg => msg.id).indexOf(message.id)
       if (index > -1) {
         state.promptMessages.splice(index, 1)
@@ -49,6 +48,7 @@ export default ({
       context.commit('deletePrompt', payload.body)
     },
     init: async (context) => {
+      console.log('stupid init!')
       context.commit('setUserKeys', { private: '', public: '' })
       // crypto.generateAsymmetricKeypair().then(x => {
       crypto.generateAsymmetricKeypairLibsodium().then(keyPair => {
@@ -59,15 +59,22 @@ export default ({
       })
     },
     initWithKey: (context, payload) => {
+      console.log('init with key!')
       userService.getUserInfo(payload.name).then(response => {
-        crypto.generatekey(payload.key)
-        context.commit('setUserKeys', { private: payload.key, public: response.data.publicKey })
+        // crypto.generatekey(payload.key)
+        console.log(payload)
+        console.log(response.data.publicKey)
+        const priv = new Uint8Array(Object.values(payload.key))
+        const publ = new Uint8Array(Object.values(response.data.publicKey))
+        context.commit('setUserKeys', { privateKey: priv, publicKey: publ, boop: 'test' })
+
         context.dispatch('setUserName', {
           name: payload.name,
           teamName: payload.teamName,
           isKnown: true
         })
       }).catch(e => {
+        console.log('Catching initwithkey', e)
         cookie.remove('user')
         context.commit('setUserFetched', { found: false, ready: true })
         context.commit('setUserKeys', { private: '', public: '' })

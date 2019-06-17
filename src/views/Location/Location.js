@@ -46,19 +46,22 @@ export default {
       this.setLocalJanusLocation(this.location)
 
       var user = cookie.getJSON('user')
+      user = JSON.parse(localStorage.getItem('user'))
       console.log(user)
       if (user && user.name && user.privateKey) {
+        console.log('why not here?')
         var teamName = null
-        if (this.$route.query && this.$route.query.redirect) {
-          const redirectTo = this.$route.query.redirect
-          teamName = redirectTo.substr(redirectTo.lastIndexOf('/') + 1, redirectTo.length)
-        }
         this.initWithKey({
           name: user.name,
           key: user.privateKey,
           teamName: teamName
         })
+        // if (this.$route.query && this.$route.query.redirect) {
+        //   const redirectTo = this.$route.query.redirect
+        //   teamName = redirectTo.substr(redirectTo.lastIndexOf('/') + 1, redirectTo.length)
+        // }
       } else {
+        console.log('why here')
         this.$router.push({
           name: 'login',
           query: this.$route.query
