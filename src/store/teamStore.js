@@ -21,7 +21,8 @@ export default ({
       valid: false
     },
     acceptedWait: false,
-    teamNameCheckerTimeout: null
+    teamNameCheckerTimeout: null,
+    adminKey: null
   },
   mutations: {
     addTeamMembers: (state, user) => {
@@ -111,6 +112,9 @@ export default ({
     },
     setAcceptedWait (state, wait) {
       state.acceptedWait = wait
+    },
+    setAdminKey (state, key) {
+      state.adminKey = key
     }
   },
   actions: {
@@ -172,11 +176,17 @@ export default ({
       context.commit('setAcceptedWait', true)
       const symKey = context.getters['teamSettings'].symKey
       userService.getUserInfo(payload.user).then(async response => {
-        var pubKey = response.data.publicKey
-        const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
+        console.log(response.data.publicKey, typeof (response.data.publicKey))
+        var pubKey = new Uint8Array(Object.values(response.data.publicKey))
+
+        console.log('pubkey from user:', pubKey)
+        const encryptedSymKeyB = await crypto.createCryptoBox(symKey, pubKey, context.getters['user'].privateKey)
+        // const encryptedSymKeyB = await crypto.createCryptoBox("trihihi", pubKey, context.getters['user'].privateKey);
+        console.log(encryptedSymKeyB)
+        // const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
         socketService.sendSignal({
           type: 'accessGranted',
-          body: encryptedSymKey,
+          body: encryptedSymKeyB,
           to: payload.user
         })
         const admins = context.getters['teamSettings'].admins
@@ -232,6 +242,7 @@ export default ({
       const from = teamMmebers.find(tm => tm.name === payload.from)
       if (from) {
         userService.getUserInfo(payload.from).then(async response => {
+          context.commit('setAdminKey', response.data.pubKey)
           const encryptedSymKey = crypto.asymmEncrypt(symKey, response.data.publicKey)
           socketService.sendSignal({
             type: 'accessGrantedKnown',
@@ -637,6 +648,7 @@ export default ({
     teamSettings: (state) => state.teamSettings,
     teamNameCheckerTimeout: (state) => state.teamNameCheckerTimeout,
     teamNameCheckStatus: (state) => state.teamNameCheckStatus,
-    acceptedWait: (state) => state.acceptedWait
+    acceptedWait: (state) => state.acceptedWait,
+    adminKey: (state) => state.adminKey
   }
 })

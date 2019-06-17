@@ -97,6 +97,7 @@ export default ({
   },
 
   asymmDecrypt (text) {
+    console.log('assymDecrypt')
     return new Promise(async (resolve, reject) => {
       if (asymmetricPrivateKey == null) reject(new Error('No privateKey found'))
       if (!text) {
@@ -112,17 +113,15 @@ export default ({
     })
   },
   async asymmEncrypt (text, pubKey) {
+    console.log('asymmEncrypt')
     var key = this.pemToArrayBuffer(pubKey)
-
     var publicKey = await webCrypto.importKey('spki', key, asymmRsaParams, true, ['encrypt'])
-
     return new Promise(async (resolve, reject) => {
       if (publicKey == null) reject(new Error('No public key found'))
       if (!text) {
         resolve('')
         return
       }
-
       webCrypto.encrypt(asymmRsaParams, publicKey, str2ab(text)).then(result => {
         resolve(ab2str(result, 'base64'))
       }).catch(e => {
@@ -151,12 +150,53 @@ export default ({
     return new Promise(async (resolve, reject) => {
       // var phrase = bip39.entropyToMnemonic(sodium.randombytes_buf(sodium.crypto_box_SEEDBYTES / 2))
       // var ken = new TextEncoder().encode(bip39.mnemonicToEntropy(phrase))
-      var keys = sodium.crypto_sign_keypair()
+      var keys = sodium.crypto_box_keypair()
       console.log('resolving...')
       resolve({
         privateKey: keys.privateKey,
         publicKey: keys.publicKey
       })
     })
+  },
+  // https://libsodium.gitbook.io/doc/public-key_cryptography/authenticated_encryption#combined-mode
+  async createCryptoBox (text, pubKey, privKey) {
+    return new Promise(async (resolve, reject) => {
+      if (pubKey == null) reject(new Error('No public key found'))
+      if (!text) {
+        resolve('')
+        return
+      }
+      console.log({ 'text': text }, { 'pubKey receiver': pubKey }, { 'privkey sender': privKey })
+      const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES)
+      var ciphertext = sodium.crypto_box_easy(text, nonce, pubKey, privKey)
+      console.log(ciphertext, nonce)
+      resolve({ ciphertext, nonce })
+      // webCrypto.encrypt(asymmRsaParams, publicKey, str2ab(text)).then(result => {
+      //   resolve(ab2str(result, 'base64'))
+      // }).catch(e => {
+      //   reject(e)
+      // })
+    })
+  },
+  openCryptoBox (body, pubKey, privKey) {
+    return new Promise((resolve, reject) => {
+      console.log('opencryptobox', { 'body': body }, { 'pubKey receiver': pubKey }, { 'privkey sender': privKey })
+
+      pubKey = new Uint8Array(Object.values(pubKey))
+      privKey = new Uint8Array(Object.values(privKey))
+      const ciphertext = new Uint8Array(Object.values(body.ciphertext))
+      const nonce = new Uint8Array(Object.values(body.nonce))
+      var plaintext = sodium.crypto_box_open_easy(ciphertext, nonce, pubKey, privKey)
+      // Plaintext are still 'bytes'
+      console.log('plaintext', plaintext)
+      console.log(decoder.decode(plaintext))
+      resolve(plaintext)
+    })
+  },
+  bytesToText (bytes) {
+    return decoder.decode(bytes)
+  },
+  textToBytes (text) {
+    return encoder.encode(text)
   }
 })

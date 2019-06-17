@@ -46,6 +46,7 @@ export default {
       this.setLocalJanusLocation(this.location)
 
       var user = cookie.getJSON('user')
+      console.log(user)
       if (user && user.name && user.privateKey) {
         var teamName = null
         if (this.$route.query && this.$route.query.redirect) {
