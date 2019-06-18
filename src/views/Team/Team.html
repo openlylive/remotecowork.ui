@@ -1,4 +1,16 @@
 <section class="team">
+  <div class="vanreks ontopper" fixed bottom right>
+    <v-btn class="accent" fab @click="invite">
+      <v-icon>
+        fa-share-alt
+      </v-icon>
+    </v-btn>
+    <v-btn class="accent" fab v-show="!showChat" @click="showChat = true">
+      <v-icon>
+        fa-comment
+      </v-icon>
+    </v-btn>
+  </div>
   <v-dialog v-model="selectBitrate" width="500" persistent v-if="dialogSelectBitrate">
     <v-card>
       <v-card-title class="headline" primary-title>Select your preferred bitrate (kbit)</v-card-title>
@@ -13,11 +25,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-btn class="accent" fab fixed bottom right v-show="!showChat" @click="showChat = true">
-    <v-icon>
-      fa-comment
-    </v-icon>
-  </v-btn>
   <v-card id="yourcam" :class="$vuetify.breakpoint.mdAndUp? 'big' : 'small'">
     <div class="badge primary lighten-1  px-2 py-1 ">
       <p class="white--text text-xs-center mb-0">Your cam</p>
@@ -77,8 +84,7 @@
             </v-flex>
             <div>
               <v-layout>
-                <emoji :emoji="{ id: 'joy', skin: 3 }" :size="16" />
-                <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
+                <!-- <v-menu v-model="showEmojis" top right :close-on-content-click='false'>
                   <v-btn slot="activator" flat icon>
                     <v-icon>
                       fas fa-smile
@@ -87,7 +93,7 @@
                   <picker native :color="$vuetify.theme.accent" emoji="point_up_2" title="Pick your emoji"
                     @select="emojiSelection" />
 
-                </v-menu>
+                </v-menu> -->
                 <v-textarea @keydown.enter.exact.prevent @keyup.enter.exact="checkAndSendMessage" :key="chatMessageKey"
                   autofocus label="Message" box v-model="message" append-icon="send" @click:append="checkAndSendMessage"
                   persistent-hint :hint="randomHint" rows="1" auto-grow autoFocus />

@@ -63,3 +63,13 @@
         top: 5px;
     }
 }
+.vanreks {
+    position: fixed;
+    bottom: 1%;
+    right: 1%;
+
+    // transform: translate(-50%);
+}
+.ontopper {
+    z-index:4;
+}
