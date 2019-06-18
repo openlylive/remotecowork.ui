@@ -158,6 +158,7 @@ export default ({
       })
     })
   },
+  // Crypto boxes are for assymetric encryption
   // https://libsodium.gitbook.io/doc/public-key_cryptography/authenticated_encryption#combined-mode
   async createCryptoBox (text, pubKey, privKey) {
     return new Promise(async (resolve, reject) => {
@@ -198,5 +199,20 @@ export default ({
   },
   textToBytes (text) {
     return encoder.encode(text)
+  },
+  // Secret boxes are for symmetric encryption
+  // https://libsodium.gitbook.io/doc/secret-key_cryptography/authenticated_encryption#example
+  generateSecretBoxKey () {
+    return sodium.crypto_secretbox_keygen()
+  },
+  createSecretBox (plaintext, key) {
+    const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES)
+    var ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, key)
+    return { ciphertext, nonce }
+  },
+  openSecretBox (ciphertext, key, nonce) {
+    if (sodium.crypto_secretbox_open_easy(ciphertext, nonce, key) !== 0) {
+      console.log('something went wrong!')
+    }
   }
 })
