@@ -1,5 +1,3 @@
-import cookie from 'js-cookie'
-
 export default function createPlugin () {
   return store => {
     store.subscribe((mutation, state) => {
@@ -19,7 +17,7 @@ export default function createPlugin () {
         console.log('Setting localstorage:', JSON.stringify(newUser))
         window.localStorage.setItem('user', JSON.stringify(newUser))
       } else if (['setTeamName', 'setTeamSettings', 'setSymKey', 'setTeamAdmin'].includes(mutation.type)) {
-        cookie.set('teamsettings', state.team.teamSettings)
+        window.localStorage.setItem('teamsettings', JSON.stringify(state.team.teamSettings))
       } else if (['addTeamMembers', 'deleteTeamMembers', 'updateTeamMember', 'updateTeamMemberLocation', 'disconnectedTeamMembers', 'connectedTeamMembers', 'setTeamMembers', 'clearHistory'].includes(mutation.type)) {
         window.localStorage.setItem('teammembers', JSON.stringify(state.team.teamMembers))
       }

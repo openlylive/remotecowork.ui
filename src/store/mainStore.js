@@ -51,12 +51,8 @@ export default ({
       console.log('stupid init!')
       context.commit('setUserKeys', { private: '', public: '' })
       // crypto.generateAsymmetricKeypair().then(x => {
-      crypto.generateAsymmetricKeypairLibsodium().then(keyPair => {
-        console.log('thenneben!')
-        context.commit('setUserKeys', keyPair)
-      }).catch(e => {
-        context.commit('setErrorMessage', { text: `Couldn't generate keys, try again later`, extra: e })
-      })
+      var keyPair = crypto.generateCryptoBoxKeyPair()
+      context.commit('setUserKeys', keyPair)
     },
     initWithKey: (context, payload) => {
       console.log('init with key!')
@@ -64,7 +60,7 @@ export default ({
         // crypto.generatekey(payload.key)
         console.log(payload)
         console.log(response.data.publicKey)
-        const priv = new Uint8Array(Object.values(payload.key))
+        const priv = new Uint8Array(Object.values(payload.privateKey))
         const publ = new Uint8Array(Object.values(response.data.publicKey))
         context.commit('setUserKeys', { privateKey: priv, publicKey: publ, boop: 'test' })
 

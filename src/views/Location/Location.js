@@ -1,5 +1,4 @@
 import { mapActions, mapGetters } from 'vuex'
-import cookie from 'js-cookie'
 export default {
   name: 'location',
   components: {
@@ -44,16 +43,13 @@ export default {
         e.preventDefault()
       }
       this.setLocalJanusLocation(this.location)
-
-      var user = cookie.getJSON('user')
-      user = JSON.parse(localStorage.getItem('user'))
-      console.log(user)
+      var user = JSON.parse(localStorage.getItem('user'))
       if (user && user.name && user.privateKey) {
         console.log('why not here?')
         var teamName = null
         this.initWithKey({
           name: user.name,
-          key: user.privateKey,
+          privateKey: user.privateKey,
           teamName: teamName
         })
         // if (this.$route.query && this.$route.query.redirect) {

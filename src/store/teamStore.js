@@ -79,6 +79,7 @@ export default ({
       }
     },
     setSymKey (state, key) {
+      key = crypto.toUint8Array(key)
       if (state.teamSettings) {
         state.teamSettings.symKey = key
       } else {
@@ -131,7 +132,7 @@ export default ({
       }
       context.commit('setTeamSettings', {
         admins: [admin],
-        symKey: symkey
+        symKey: new Uint8Array(Object.values(symkey))
       })
       context.commit('isRejoining', true)
       context.commit('setInvitationStatus', {
@@ -146,7 +147,7 @@ export default ({
       }
       context.commit('setTeamSettings', {
         admins: [admin],
-        symKey: symkey
+        symKey: new Uint8Array(Object.values(symkey))
       })
       context.commit('isRejoining', false)
       context.commit('setInvitationStatus', {
@@ -155,7 +156,6 @@ export default ({
       })
     },
     rejectUser: (context, payload) => {
-      console.log(payload)
       socketService.sendSignal({
         type: 'accessDeclined',
         body: '',
@@ -176,14 +176,8 @@ export default ({
       context.commit('setAcceptedWait', true)
       const symKey = context.getters['teamSettings'].symKey
       userService.getUserInfo(payload.user).then(async response => {
-        console.log(response.data.publicKey, typeof (response.data.publicKey))
-        var pubKey = new Uint8Array(Object.values(response.data.publicKey))
-
-        console.log('pubkey from user:', pubKey)
+        var pubKey = crypto.toUint8Array(response.data.publicKey)
         const encryptedSymKeyB = await crypto.createCryptoBox(symKey, pubKey, context.getters['user'].privateKey)
-        // const encryptedSymKeyB = await crypto.createCryptoBox("trihihi", pubKey, context.getters['user'].privateKey);
-        console.log(encryptedSymKeyB)
-        // const encryptedSymKey = await crypto.asymmEncrypt(symKey, pubKey)
         socketService.sendSignal({
           type: 'accessGranted',
           body: encryptedSymKeyB,
@@ -217,7 +211,7 @@ export default ({
       context.commit('setTeamSettings', {
         name: payload,
         admins: [newMe],
-        symKey: await crypto.generateSymmetricKey()
+        symKey: crypto.generateSecretBoxKey()
       })
       socketService.emit('createTeam', { name: payload, admins: [newMe] })
       context.commit('isRejoining', false)
@@ -225,7 +219,6 @@ export default ({
       context.commit('addTeamMembers', newMe)
     },
     ping (context, payload) {
-      console.log(payload.from)
       socketService.sendSignal({
         type: 'pongAdminRequest',
         body: 'pong',
@@ -233,28 +226,30 @@ export default ({
       })
     },
     pongAdminRequest (context, payload) {
-      console.log('Admin replied!')
       context.commit('setAdminRepliedToPing')
     },
     requestSymKey (context, payload) {
       const symKey = context.getters['teamSettings'].symKey
       const teamMmebers = context.getters['teamMembers']
-      const from = teamMmebers.find(tm => tm.name === payload.from)
-      if (from) {
+      const isKnown = !!teamMmebers.find(tm => tm.name === payload.from)
+      if (isKnown) { // If user is already member of team
         userService.getUserInfo(payload.from).then(async response => {
-          context.commit('setAdminKey', response.data.pubKey)
-          const encryptedSymKey = crypto.asymmEncrypt(symKey, response.data.publicKey)
+          var pubKey = crypto.toUint8Array(response.data.publicKey)
+          context.commit('setAdminKey', pubKey)
+          const cryptobox = crypto.createCryptoBox(symKey, pubKey, context.getters['user'].privateKey) // A cryptobox containing the new symmetric key
+          // const encryptedSymKey = crypto.asymmEncrypt(symKey, response.data.publicKey)
           socketService.sendSignal({
             type: 'accessGrantedKnown',
-            body: await encryptedSymKey,
+            body: await cryptobox,
             to: response.data.name
           })
         })
       } else {
+        console.log(payload)
         context.commit('addPromptMessage', {
           id: payload.body.id,
           title: 'Permission requested',
-          body: `User <strong>${window.escapeHtml(payload.from)}ss</strong> wants to access <strong>${window.escapeHtml(payload.body.teamname)}</strong>`,
+          body: `User <strong>${window.escapeHtml(payload.from)}</strong> wants to access <strong>${window.escapeHtml(payload.body.teamname)}</strong>`,
           cancelMessage: 'Close the gates',
           okMessage: 'Let him in',
           okAction: 'acceptUser',

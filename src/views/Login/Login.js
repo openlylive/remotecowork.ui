@@ -2,6 +2,7 @@ import { mapGetters, mapActions } from 'vuex'
 import copy from 'copy-to-clipboard'
 import randomstring from 'randomstring'
 import config from '../../../public/static'
+import crypto from '../../workers/cryptoWorker'
 
 export default {
   name: 'login',
@@ -11,10 +12,10 @@ export default {
     return {
       valid: true,
       name: '',
-      nameRegex: new RegExp(/^(\w+\.\w+)$/),
+      nameRegex: new RegExp(/^(\w+)$/),
       nameRules: [
         v => !!v || 'Name is required',
-        v => this.nameRegex.test(v) || 'Name must contain 2 sections separated by a dot'
+        v => this.nameRegex.test(v) || 'Name must only contain characters Aa-Zz'
       ],
       privateKey: ''
     }
@@ -26,11 +27,11 @@ export default {
     ])
   },
   mounted () {
-    window.addEventListener('message', (e) => {
-      if (e.data.type === '3botlogin-finished') {
-        this.loginWith3BotFinished(e.data.data)
-      }
-    })
+    // window.addEventListener('message', (e) => {
+    //   if (e.data.type === '3botlogin-finished') {
+    //     this.loginWith3BotFinished(e.data.data)
+    //   }
+    // })
   },
   methods: {
     ...mapActions([
@@ -45,7 +46,6 @@ export default {
     },
     identify (e) {
       e.preventDefault()
-      console.log('wtf?')
       this.setUserName({
         name: this.name
       })
@@ -65,9 +65,10 @@ export default {
           teamName = redirectTo.substr(redirectTo.lastIndexOf('/') + 1, redirectTo.length)
         }
       }
+      console.log('reidentify!')
       this.initWithKey({
         name: this.name,
-        key: this.privateKey,
+        privateKey: this.privateKey,
         teamName: teamName
       })
     },
@@ -81,29 +82,25 @@ export default {
     },
     loginWith3Bot () {
       var state = randomstring.generate()
-      // var keys = await CryptoService.generateKeys(config.seedPhrase)
-      var appid = 'RemoteWork'
-      var scope = 'user:derivativekey'
-      var publicKey = 'xKHlaIyza5dSxswOmvuYV7MDreIbLllK9T0n3c1tu0g='
+      var scope = 'user:email'
+      var tempAppKeyPair = crypto.generateCryptoBoxKeyPair()
       window.localStorage.setItem('state', state)
-      //        window.location.href = `${config.botForntEnd}?state=${state}&scope=${scope}&appid=${appid}&publickey=${encodeURIComponent(CryptoService.getEdPkInCurve(keys.publicKey))}&redirecturl=${config.redirect_url}/callback`
-      var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${appid}&publickey=${publicKey}&redirecturl=${encodeURIComponent(config.redirect_url)}`
-      console.log(urlleke)
-      let w = 400
-      let h = 500
-      var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX
-      var dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY
-      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
-      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
-      var systemZoom = width / window.screen.availWidth
-      var left = ((width - w) / 2 / systemZoom + dualScreenLeft) - w / 2
-      var top = (height - h) / 2 / systemZoom + dualScreenTop
-      window.open(`${urlleke}`, 'popUpWindow', `left=${left},top=${top},height=500,width=400,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=yes`)
-    },
-    loginWith3BotFinished (data) {
-      console.log('login with 3bot finished!', data)
-      this.name = data.username
+      window.localStorage.setItem('tempAppKeyPair', JSON.stringify(tempAppKeyPair))
+
+      var redirectUrl = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${config.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}`
+
+      if (this.$route.query.redirect) { // urlcontains
+        console.log('redirect found!')
+        redirectUrl += `?redirect=${encodeURIComponent(this.$route.query.redirect)}`
+      };
+      // var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${config.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}?redirect`
+      // var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=%3Ch1%3Etes%3C%2Fh1%3E&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}?redirect`
+
+      console.log(redirectUrl)
+      // window.open(`${urlleke}`, 'popUpWindow', `left=2200,top=300,height=500,width=400,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=yes`)
+      window.location.href = redirectUrl
     }
+
   },
   watch: {
     user: {

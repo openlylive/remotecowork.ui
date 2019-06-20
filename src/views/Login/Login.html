@@ -8,23 +8,24 @@
               <v-card-title class="headline pt-0 pl-0" primary-title>
                 Identify yourself
               </v-card-title>
-              <v-text-field autofocus box label="Double name" :rules="nameRules" hint="Give in your double name separated by a dot"
-                required v-model="name"></v-text-field>
+              <v-text-field autofocus box label="Your name" :rules="nameRules" hint="Please type your name" required
+                v-model="name"></v-text-field>
             </v-card-text>
-            <v-card-actions>
-              <v-btn v-on:click="loginWith3Bot" flat>Log in with 3Bot</v-btn>
-              <v-spacer></v-spacer>
-              <v-btn :disabled="!valid" type="submit" flat>Send name</v-btn>
-            </v-card-actions>
+              <v-card-actions>
+                <v-btn v-on:click="loginWith3Bot" flat>Log in with 3Bot</v-btn>
+                <v-spacer></v-spacer>
+                <v-btn :disabled="!valid" type="submit" flat>Send name</v-btn>
+              </v-card-actions>
           </v-form>
 
-          <v-form ref="form" v-model="valid" lazy-validation @submit="reidentify" v-if="userFetched.ready && userFetched.found"
-            key="known">
+          <v-form ref="form" v-model="valid" lazy-validation @submit="reidentify"
+            v-if="userFetched.ready && userFetched.found" key="known">
             <v-card-text>
               <v-card-title class="headline pt-0 pl-0" primary-title>
                 You are already familiar
               </v-card-title>
-              <v-textarea persistent-hint autofocus box label="Fill in your private key" required v-model="privateKey" rows="5" hint="Don't worry, we store this locally"></v-textarea>
+              <v-textarea persistent-hint autofocus box label="Fill in your private key" required v-model="privateKey"
+                rows="5" hint="Don't worry, we store this locally"></v-textarea>
             </v-card-text>
             <v-card-actions>
               <v-btn :disabled="!valid" @click="restartLogin" flat>Login with different account</v-btn>
@@ -33,16 +34,17 @@
             </v-card-actions>
           </v-form>
 
-          <v-form ref="form" v-model="valid" lazy-validation @submit="identify" v-if="userFetched.ready && !userFetched.found"
-            key="notKnown">
+          <v-form ref="form" v-model="valid" lazy-validation @submit="identify"
+            v-if="userFetched.ready && !userFetched.found" key="notKnown">
             <v-card-text>
               <v-card-title class="headline pt-0 pl-0" primary-title>
                 I don't know you, yet. <br>{{user.privateKey ? '' : 'Let me generate you some keys...'}}
               </v-card-title>
-              <v-layout justify-center  v-if="!user.privateKey">
+              <v-layout justify-center v-if="!user.privateKey">
                 <v-progress-circular :size="90" :width="10" color="primary" indeterminate></v-progress-circular>
               </v-layout>
-              <v-textarea v-else readonly persistent-hint autofocus box label="Your private key is" required v-model="privateKey" rows="5" hint="Keep this in a secure place, we don't store this."></v-textarea>
+              <v-textarea v-else readonly persistent-hint autofocus box label="Your private key is" required
+                v-model="privateKey" rows="5" hint="Keep this in a secure place, we don't store this."></v-textarea>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>

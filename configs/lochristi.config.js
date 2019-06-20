@@ -1,3 +1,5 @@
 export default {
-  nodeserver: 'https://lochristi.threefold.work:3000'
+  nodeserver: 'https://cowork-lochristi.threefold.work:3000',
+  threebotapi: 'https://login.threefold.io/api',
+  app_id_3bot: 'Freeflow-connect'
 }

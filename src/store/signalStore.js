@@ -7,7 +7,7 @@ import userService from '../services/userService'
 
 Vue.use(Vuex)
 
-const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft', 'ping', 'pongAdminRequest']
+const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft', 'ping', 'pongAdminRequest', 'userInitialized']
 
 export default ({
   state: {
@@ -32,45 +32,44 @@ export default ({
         userService.getUserInfo(message.from).then((userinfo) => {
           console.log(userinfo)
           // crypto.asymmDecrypt(message.body).then(x => {
-          crypto.openCryptoBox(message.body, userinfo.data.publicKey, privKey).then(x => {
-            console.log(x)
-            message.body = x
-            context.commit('addToQueue', () => {
-              return context.dispatch(message.type, message)
-            })
-          }).catch(e => {
-            context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
+          const decrypted = crypto.openCryptoBox(message.body, crypto.toUint8Array(userinfo.data.publicKey), privKey)
+          console.log(decrypted)
+          message.body = decrypted
+          context.commit('addToQueue', () => {
+            return context.dispatch(message.type, message)
           })
         })
       } else {
         console.log('toetje 2')
-        console.log(message.body, teamKey)
-        crypto.symmDecrypt(message.body, teamKey).then(x => {
-          if (x) message.body = JSON.parse(x)
+        // console.log("Opening the box", message.body, teamKey)
+        console.log(teamKey)
+        var x = crypto.openSecretBox(JSON.parse(message.body), teamKey)
+        crypto.bytesToText(x)
+        if (x) {
+          message.body = JSON.parse(crypto.bytesToText(x))
           context.commit('addToQueue', () => {
             return context.dispatch(message.type, message)
           })
-        }).catch(e => {
-          context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
-        })
-        crypto.symmDecrypt(message.body, teamKey).then(x => {
-          if (x) message.body = JSON.parse(x)
-          context.commit('addToQueue', () => {
-            return context.dispatch(message.type, message)
-          })
-        }).catch(e => {
-          context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
-        })
+        }
+
+        // crypto.symmDecrypt(message.body, teamKey).then(x => {
+        //   if (x) message.body = JSON.parse(x)
+        //   context.commit('addToQueue', () => {
+        //     return context.dispatch(message.type, message)
+        //   })
+        // }).catch(e => {
+        //   context.commit('setErrorMessage', { text: `Couldn't decrypt message, try again later`, extra: e })
+        // })
       }
     },
     sendSignal: (context, signal) => {
+      console.log('sendSignal!')
       const teamKey = context.getters['teamSettings'].symKey
-      crypto.symmEncrypt(JSON.stringify(signal.body), teamKey).then(x => {
-        signal.body = x
-        socketService.sendSignal(signal)
-      }).catch(e => {
-        context.commpingit('setErrorMessage', { text: `Couldn't encrypt message, try again later`, extra: e })
-      })
+      // crypto.symmEncrypt(JSON.stringify(signal.body), teamKey).then(x => {
+      var ken = crypto.createSecretBox(JSON.stringify(signal.body), teamKey)
+      console.log('ken', ken)
+      signal.body = JSON.stringify(ken)
+      socketService.sendSignal(signal)
     }
   },
   getters: {

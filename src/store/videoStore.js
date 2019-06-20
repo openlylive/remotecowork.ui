@@ -60,6 +60,7 @@ export default ({
       state.someoneScreenSharing = payload
     },
     setLocalJanusLocation: (state, payload) => {
+      window.localStorage.setItem('JanusLocation', payload)
       state.localJanusLocation = payload
     },
     setNoiseMaker (state, noiseMaker) {

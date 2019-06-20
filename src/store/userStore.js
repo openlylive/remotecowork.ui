@@ -3,6 +3,8 @@ import Vuex from 'vuex'
 import socketService from '../services/socketService'
 import userService from '../services/userService'
 import crypto from '../workers/cryptoWorker'
+import Axios from 'axios'
+import config from '../../public/static'
 Vue.use(Vuex)
 
 export default ({
@@ -23,8 +25,7 @@ export default ({
       state.user.name = name
     },
     setUserKeys: (state, keys) => {
-      console.log('Setting user keys')
-      console.log(state.user)
+      console.log('Setting user keys', state.user)
       state.user.privateKey = keys.privateKey
       state.user.publicKey = keys.publicKey
     },
@@ -63,6 +64,7 @@ export default ({
       })
       // context.commit('setSymKey', null)
       const id = Math.random().toString(36).substring(7)
+      console.log('stuff', teamName)
       socketService.emit('requestSymKey', {
         teamname: teamName,
         id: id
@@ -106,8 +108,33 @@ export default ({
       })
       context.commit('setUserName', '')
       context.commit('setUserKeys', {
-        private: '',
-        public: ''
+        privateKey: '',
+        publicKey: ''
+      })
+    },
+    loginWith3BotFinished: (context, data) => {
+      console.log('login with 3bot finished!', data)
+      // context.commit("setUserName", data.username)
+      Axios.get(`${config.threebot_api}/users/${data.username}`).then(response => {
+        let verifiedState = crypto.verify3botSignature(data.signedhash, response.data.publicKey)
+        if (localStorage.getItem('state') === crypto.bytesToText(verifiedState)) {
+          var ciphertext = {
+            ciphertext: crypto.a2b(JSON.parse(data.data).ciphertext),
+            nonce: crypto.a2b(JSON.parse(data.data).nonce)
+          }
+          var tempAppKeyPair = JSON.parse(localStorage.getItem('tempAppKeyPair'))
+          var plaintextBody = crypto.openCryptoBox(ciphertext, crypto.edPkToCurve(crypto.a2b(response.data.publicKey)), crypto.toUint8Array(tempAppKeyPair.privateKey))
+          console.log(plaintextBody, crypto.bytesToText(plaintextBody))
+
+          //
+          const temp = crypto.generateCryptoBoxKeyPair()
+          console.log(temp)
+          // TODO: fill in key pair of user
+          context.commit('setUserKeys', temp)
+          context.dispatch('setUserName', { name: data.username })
+        } else {
+          console.log('Something went wrong')
+        }
       })
     }
   },
