@@ -16,7 +16,9 @@ export default {
   },
   mounted () {
     console.log(this.$route.query)
-    this.loginWith3BotFinished(this.$route.query).then(redirectUri => {
+    var data = this.$route.query
+    data.data = JSON.parse(data.data)
+    this.loginWith3BotFinished(data).then(() => {
       this.setLocalJanusLocation(window.localStorage.getItem('JanusLocation'))
       if (this.$route.query.redirect) {
         const redirectTo = this.$route.query.redirect

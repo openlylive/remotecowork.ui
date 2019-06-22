@@ -24,6 +24,8 @@ export default ({
       const teamKey = context.getters['teamSettings'].symKey
       const privKey = context.getters.user.privateKey
       if (noNeedForDecryption.includes(message.type)) {
+        console.log('no need for decryption', message.type, message)
+        // console.log("miauwkes", message)
         context.commit('addToQueue', () => {
           return context.dispatch(message.type, message)
         })

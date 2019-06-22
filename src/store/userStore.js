@@ -17,25 +17,27 @@ export default ({
     userFetched: {
       found: false,
       ready: false
-    }
+    },
+    userKnownInEmbed: false
   },
   mutations: {
     setUserName: (state, name) => {
-      console.log('setUserName userstore')
       state.user.name = name
     },
     setUserKeys: (state, keys) => {
-      console.log('Setting user keys', state.user)
       state.user.privateKey = keys.privateKey
       state.user.publicKey = keys.publicKey
     },
     setUserFetched: (state, userFetched) => {
       state.userFetched = userFetched
+    },
+    setUserKnownInEmbed: (state, value) => {
+      // Probably only used to set to true
+      state.userKnownInEmbed = value
     }
   },
   actions: {
     setUserName: (context, payload) => {
-      console.log('setusername action', payload)
       context.commit('setUserName', payload.name)
       socketService.emit('identify', {
         name: payload.name,
@@ -64,7 +66,6 @@ export default ({
       })
       // context.commit('setSymKey', null)
       const id = Math.random().toString(36).substring(7)
-      console.log('stuff', teamName)
       socketService.emit('requestSymKey', {
         teamname: teamName,
         id: id
@@ -113,33 +114,40 @@ export default ({
       })
     },
     loginWith3BotFinished: (context, data) => {
-      console.log('login with 3bot finished!', data)
+      console.log('loginWith3BotFinished')
       // context.commit("setUserName", data.username)
       Axios.get(`${config.threebot_api}/users/${data.username}`).then(response => {
         let verifiedState = crypto.verify3botSignature(data.signedhash, response.data.publicKey)
+        console.log(localStorage.getItem('state'), crypto.bytesToText(verifiedState))
         if (localStorage.getItem('state') === crypto.bytesToText(verifiedState)) {
           var ciphertext = {
-            ciphertext: crypto.a2b(JSON.parse(data.data).ciphertext),
-            nonce: crypto.a2b(JSON.parse(data.data).nonce)
+            ciphertext: crypto.a2b(data.data.ciphertext),
+            nonce: crypto.a2b(data.data.nonce)
           }
           var tempAppKeyPair = JSON.parse(localStorage.getItem('tempAppKeyPair'))
           var plaintextBody = crypto.openCryptoBox(ciphertext, crypto.edPkToCurve(crypto.a2b(response.data.publicKey)), crypto.toUint8Array(tempAppKeyPair.privateKey))
-          console.log(plaintextBody, crypto.bytesToText(plaintextBody))
-
-          //
-          const temp = crypto.generateCryptoBoxKeyPair()
-          console.log(temp)
-          // TODO: fill in key pair of user
-          context.commit('setUserKeys', temp)
+          plaintextBody = JSON.parse(crypto.bytesToText(plaintextBody))
+          var keys = {
+            publicKey: crypto.a2b(plaintextBody.keys.publicKey),
+            privateKey: crypto.a2b(plaintextBody.keys.privateKey)
+          }
+          context.commit('setUserKeys', keys)
           context.dispatch('setUserName', { name: data.username })
+          console.log('all done!')
         } else {
           console.log('Something went wrong')
         }
       })
+    },
+    userIsKnownInEmbed: (context, data) => {
+      console.log('userstore embed')
+
+      context.commit('setUserKnownInEmbed', true)
     }
   },
   getters: {
     user: (state) => (state.user || null),
-    userFetched: (state) => (state.userFetched || null)
+    userFetched: (state) => (state.userFetched || null),
+    userKnownInEmbed: (state) => (state.userKnownInEmbed || null)
   }
 })

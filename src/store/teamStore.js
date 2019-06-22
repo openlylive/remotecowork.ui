@@ -219,6 +219,7 @@ export default ({
       context.commit('addTeamMembers', newMe)
     },
     ping (context, payload) {
+      console.log('got ping', context, payload)
       socketService.sendSignal({
         type: 'pongAdminRequest',
         body: 'pong',
@@ -226,6 +227,7 @@ export default ({
       })
     },
     pongAdminRequest (context, payload) {
+      console.log('got the pongelong')
       context.commit('setAdminRepliedToPing')
     },
     requestSymKey (context, payload) {

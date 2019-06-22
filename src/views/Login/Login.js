@@ -17,28 +17,49 @@ export default {
         v => !!v || 'Name is required',
         v => this.nameRegex.test(v) || 'Name must only contain characters Aa-Zz'
       ],
-      privateKey: ''
+      privateKey: '',
+      embedded3BotUrl: `${config.threebot_frontend}/embeddedlogin?appId=${config.app_id_3bot}`
     }
   },
   computed: {
     ...mapGetters([
       'user',
-      'userFetched'
+      'userFetched',
+      'userKnownInEmbed'
     ])
   },
   mounted () {
-    // window.addEventListener('message', (e) => {
-    //   if (e.data.type === '3botlogin-finished') {
-    //     this.loginWith3BotFinished(e.data.data)
-    //   }
-    // })
+    console.log('adding event listeners')
+    window.addEventListener('message', (e) => {
+      console.log('Got a message', e.data)
+      if (e.data.type === '3botlogin-finished') {
+        this.loginWith3BotFinished(e.data.data).then(() => {
+          console.log('going to redirect')
+          if (this.$route.query.redirect) {
+            const redirectTo = this.$route.query.redirect
+            const teamName = redirectTo.substr(redirectTo.lastIndexOf('/') + 1, redirectTo.length)
+            this.$router.push({ name: 'join', query: { team: teamName } })
+          } else {
+            this.$router.push({
+              name: 'teams'
+            })
+          }
+        })
+      } else if (e.data.type === '3botlogin-user-known-alert') {
+        this.userIsKnownInEmbed()
+      } else if (e.data.type === '3botlogin-request-login-info') {
+        this.loginWith3BotEmbedded()
+      }
+    })
   },
   methods: {
     ...mapActions([
       'fetchUser',
       'setUserName',
       'initWithKey',
-      'setSnackbarMessage'
+      'setSnackbarMessage',
+      'userIsKnownInEmbed',
+      'loginWith3BotFinished'
     ]),
     sendName (e) {
       e.preventDefault()
@@ -80,25 +101,29 @@ export default {
         this.setSnackbarMessage(`Can't copy if I don't have it`)
       }
     },
-    loginWith3Bot () {
+    getLoginInfo3Bot () {
       var state = randomstring.generate()
-      var scope = 'user:email'
+      var scope = 'user:email,user:keys'
       var tempAppKeyPair = crypto.generateCryptoBoxKeyPair()
-      window.localStorage.setItem('state', state)
-      window.localStorage.setItem('tempAppKeyPair', JSON.stringify(tempAppKeyPair))
-
-      var redirectUrl = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${config.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}`
-
+      return { state, scope, tempAppKeyPair, appId: config.app_id_3bot }
+    },
+    loginWith3Bot () {
+      const info = this.getLoginInfo3Bot()
+      var redirectUrl = `${config.threebot_frontend}?state=${info.state}&scope=${info.scope}&appid=${info.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(info.tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}`
+      window.localStorage.setItem('state', info.state)
+      window.localStorage.setItem('tempAppKeyPair', JSON.stringify(info.tempAppKeyPair))
       if (this.$route.query.redirect) { // urlcontains
-        console.log('redirect found!')
         redirectUrl += `?redirect=${encodeURIComponent(this.$route.query.redirect)}`
       };
-      // var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=${config.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}?redirect`
-      // var urlleke = `${config.threebot_frontend}?state=${state}&scope=${scope}&appid=%3Ch1%3Etes%3C%2Fh1%3E&publickey=${encodeURIComponent(crypto.b2a(Array.from(tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}?redirect`
-
-      console.log(redirectUrl)
-      // window.open(`${urlleke}`, 'popUpWindow', `left=2200,top=300,height=500,width=400,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=yes`)
       window.location.href = redirectUrl
+    },
+    loginWith3BotEmbedded () {
+      const info = this.getLoginInfo3Bot()
+      window.localStorage.setItem('state', info.state)
+      window.localStorage.setItem('tempAppKeyPair', JSON.stringify(info.tempAppKeyPair))
+
+      const iframe = document.getElementById('embeddedlogin').contentWindow
+      iframe.postMessage({ type: '3botlogin-info', data: { state: info.state, scope: info.scope, publicKey: crypto.b2a(Array.from(info.tempAppKeyPair.publicKey)) } }, '*')
     }
 
   },
@@ -129,6 +154,9 @@ export default {
       } else if (val && val.ready && !val.found) {
         this.$store.dispatch('init')
       }
+    },
+    userKnownInEmbed (val) {
+      console.log('hmmm', val)
     }
   }
 }
