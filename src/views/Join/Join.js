@@ -12,8 +12,7 @@ export default {
     ...mapGetters([
       'invitationStatus',
       'teamSettings',
-      'user',
-      'teamAdminsAvailable'
+      'user'
     ]),
     isAdmin () {
       let tuce = false
@@ -30,17 +29,16 @@ export default {
     console.log(teamSettings)
     if (this.$route.query.team &&
       teamSettings !== undefined &&
-      teamSettings &&
-      teamSettings.name &&
-      teamSettings.admins &&
-      teamSettings.admins.length &&
+      teamSettings && teamSettings.name &&
+      teamSettings.admins && teamSettings.admins.length &&
       teamSettings.admins.find(a => a.name === this.user.name) &&
       teamSettings.name.toLowerCase() === this.$route.query.team.toLowerCase()) {
-      console.log('in de IF!')
       teamSettings.symKey = crypto.toUint8Array(teamSettings.symKey)
+      var list = JSON.parse(window.localStorage.getItem('teammembers'))
+      list.find(user => user.name === this.user.name).online = true
       this.previousTeamSettings({
         settings: teamSettings,
-        list: JSON.parse(window.localStorage.getItem('teammembers'))
+        list: list
       })
       this.$router.push({ name: 'team', params: { teamname: teamSettings.name } })
     } else {
@@ -51,10 +49,10 @@ export default {
           var requestInterval = setInterval(() => {
             console.log(`Admin replied: ${this.invitationStatus.adminRepliedToPing}`)
             if (this.invitationStatus.adminRepliedToPing) {
+              this.sendSymKeyRequest(this.$route.query.team)
               clearInterval(requestInterval)
             } else {
               this.sendPingAdmins(this.$route.query.team)
-              this.sendSymKeyRequest(this.$route.query.team)
             }
           }, 3000)
         })

@@ -109,7 +109,7 @@ export default {
     },
     loginWith3Bot () {
       const info = this.getLoginInfo3Bot()
-      var redirectUrl = `${config.threebot_frontend}?state=${info.state}&scope=${info.scope}&appid=${info.app_id_3bot}&publickey=${encodeURIComponent(crypto.b2a(Array.from(info.tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}`
+      var redirectUrl = `${config.threebot_frontend}?state=${info.state}&scope=${info.scope}&appid=${info.appId}&publickey=${encodeURIComponent(crypto.b2a(Array.from(info.tempAppKeyPair.publicKey)))}&redirecturl=${encodeURIComponent(config.redirect_url)}`
       window.localStorage.setItem('state', info.state)
       window.localStorage.setItem('tempAppKeyPair', JSON.stringify(info.tempAppKeyPair))
       if (this.$route.query.redirect) { // urlcontains

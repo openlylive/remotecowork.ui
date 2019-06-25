@@ -180,6 +180,7 @@ export default ({
         if (janus) {
           resolve(janus)
         } else {
+          console.log('addjanus', data)
           context.getters['jimberjanus'].createJanus(data).then(r => {
             context.commit('addJanus', { location: data, janus: r })
             resolve(r)

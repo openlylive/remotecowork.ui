@@ -59,6 +59,6 @@
 
     </v-flex>
   </v-layout>
-  <iframe v-if scrolling="no" id="embeddedlogin" :src='embedded3BotUrl' v-bind:class="{ hidden: !userKnownInEmbed }">
+  <iframe scrolling="no" id="embeddedlogin" :src='embedded3BotUrl' :class="!userKnownInEmbed ? 'hidden' : ''">
   </iframe>
 </section>

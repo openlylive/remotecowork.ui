@@ -114,7 +114,6 @@ export default ({
       })
     },
     loginWith3BotFinished: (context, data) => {
-      console.log('loginWith3BotFinished')
       // context.commit("setUserName", data.username)
       Axios.get(`${config.threebot_api}/users/${data.username}`).then(response => {
         let verifiedState = crypto.verify3botSignature(data.signedhash, response.data.publicKey)

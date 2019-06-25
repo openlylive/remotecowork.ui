@@ -247,7 +247,6 @@ export default ({
           })
         })
       } else {
-        console.log(payload)
         context.commit('addPromptMessage', {
           id: payload.body.id,
           title: 'Permission requested',
@@ -360,6 +359,7 @@ export default ({
         if (context.getters['isRejoining']) {
           context.dispatch('sendRejoin')
         }
+        resolve('')
       })
     },
     async userInitialized (context, payload) {
@@ -371,17 +371,16 @@ export default ({
           context.dispatch('sendSignal', {
             type: 'userlist',
             body: {
-              list: context.getters.teamMembers,
+              list: teammembers,
               name: teamName
             },
             to: payload.from
           })
-
           userInfo.data.streamId = 5
           userInfo.data.online = true
           userInfo.data.muted = false
           if (!teammembers.find(t => t.name === payload.from)) {
-            context.getters.teamMembers.forEach(teammember => {
+            teammembers.forEach(teammember => {
               context.dispatch('sendSignal', {
                 type: 'userAdded',
                 body: {

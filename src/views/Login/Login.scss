@@ -3,12 +3,29 @@
 }
 
 .hidden {
-    visibility: hidden;
+    display: none;
 }
 
 #embeddedlogin {
-    width: 600px;
-    height: 200px;
+    width: 450px;
+    height: 155px;
     border: 0;
-    
+    border-radius: 20px;
+    top: -35px;
+    right: -500px;
+    transition: 1s;
+    position: absolute;
+    -webkit-animation: slide 0.5s forwards;
+    -webkit-animation-delay: 2s;
+    animation: slide 0.5s forwards;
+    animation-delay: 2s;
+
+    -webkit-box-shadow: 0px 0px 37px -7px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 0px 37px -7px rgba(0,0,0,0.75);
+    box-shadow: 0px 0px 37px -7px rgba(0,0,0,0.75);
+}
+
+
+@keyframes slide {
+    100% { right: 10px; }
 }

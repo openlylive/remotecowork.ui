@@ -1,7 +1,7 @@
 export default {
   nodeserver: 'https://nodeserver.test:3000',
-  threebot_frontend: 'https://localhost:8080',
-  //threebot_frontend: 'https://login.staging.jimber.org/',
+  //threebot_frontend: 'https://localhost:8080',
+  threebot_frontend: 'https://login.staging.jimber.org',
   threebot_api: 'https://login.staging.jimber.org/api',
   redirect_url: 'https://cowork.test:8081/callback',
   app_id_3bot: 'cowork-dev'
