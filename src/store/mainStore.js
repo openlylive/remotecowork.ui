@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import crypto from '../workers/cryptoWorker'
 import userService from '../services/userService'
-import cookie from 'js-cookie'
+import router from '../router'
 Vue.use(Vuex)
 
 export default ({
@@ -49,7 +49,6 @@ export default ({
     },
     init: async (context) => {
       context.commit('setUserKeys', { private: '', public: '' })
-      // crypto.generateAsymmetricKeypair().then(x => {
       var keyPair = crypto.generateCryptoBoxKeyPair()
       context.commit('setUserKeys', keyPair)
     },
@@ -66,13 +65,20 @@ export default ({
           isKnown: true
         })
       }).catch(e => {
-        cookie.remove('user')
-        context.commit('setUserFetched', { found: false, ready: true })
-        context.commit('setUserKeys', { private: '', public: '' })
-        context.commit('setSnackbarMessage', 'Due to an error we had to generate you some new keys')
-        var keys = crypto.generateCryptoBoxKeyPair()
-        context.commit('setUserKeys', keys)
-        context.dispatch('setUserName', { name: payload.name })
+        if (payload.name.split('.')[1] === '3bot') {
+          console.log('you are a 3botuser!!!! I should not generate keys')
+          context.commit('setUserKeys', { private: '', public: '' })
+          context.commit('setSnackbarMessage', 'Your login has expired. Please log in again')
+          router.push('/login')
+        } else {
+          console.log('not a 3botuser')
+          context.commit('setUserFetched', { found: false, ready: true })
+          context.commit('setUserKeys', { private: '', public: '' })
+          context.commit('setSnackbarMessage', 'Due to an error we had to generate you some new keys')
+          var keys = crypto.generateCryptoBoxKeyPair()
+          context.commit('setUserKeys', keys)
+          context.dispatch('setUserName', { name: payload.name })
+        }
       })
     },
     setSnackbarMessage: (context, msg) => context.commit('setSnackbarMessage', msg)

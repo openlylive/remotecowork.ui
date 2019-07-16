@@ -6,7 +6,6 @@ export default {
   props: [],
   data () {
     return {
-      valid: true,
       teamname: '',
       nameRegex: new RegExp(/^(\w+)$/),
       teamNameRules: [

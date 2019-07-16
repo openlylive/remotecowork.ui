@@ -40,7 +40,8 @@ export default {
   computed: {
     ...mapGetters([
       'user',
-      'teamMembers',
+      'teams',
+      'currentTeam',
       'messages',
       'janusrtpfwd',
       'audioMuted',
@@ -48,8 +49,8 @@ export default {
       'screensharing',
       'someoneScreenSharing',
       'localJanusLocation',
-      'noiseMaker',
-      'teamSettings'
+      'noiseMaker'
+      // 'teamSettings'
     ]),
     link () {
       var base = `${window.location.protocol}//${window.location.host}`
@@ -61,9 +62,11 @@ export default {
         case 0:
           return 'Shift + return = new line'
         case 1:
-          return 'Styling with Markdown is supported'
+          // return 'Styling with Markdown is supported'
+          return 'Cats are cute'
         case 2:
-          return 'Try our emojis'
+          // return 'Try our emojis'
+          return 'Did you know you can now log in with 3Bot'
         case 3:
           return 'Be kind to everyone'
         case 4:

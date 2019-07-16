@@ -25,8 +25,10 @@ export default new Vuex.Store({
 
 // Maybe ivan can show me where to put this 'clean'
 function escapeHtml (str) {
-  var div = document.createElement('template')
+  console.log(str)
+  var div = document.createElement('div')
   div.appendChild(document.createTextNode(str))
+  console.log(div.innerHTML)
   return div.innerHTML
 }
 window.escapeHtml = escapeHtml

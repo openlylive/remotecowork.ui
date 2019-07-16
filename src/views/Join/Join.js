@@ -12,6 +12,7 @@ export default {
     ...mapGetters([
       'invitationStatus',
       'teamSettings',
+      'currentTeam',
       'user'
     ]),
     isAdmin () {
@@ -45,16 +46,16 @@ export default {
       // is not a admin
       if (this.$route.query.team) {
         this.sendPingAdmins(this.$route.query.team).then(() => {
-          this.sendSymKeyRequest(this.$route.query.team)
           var requestInterval = setInterval(() => {
             console.log(`Admin replied: ${this.invitationStatus.adminRepliedToPing}`)
             if (this.invitationStatus.adminRepliedToPing) {
+              console.log('wookie!')
               this.sendSymKeyRequest(this.$route.query.team)
               clearInterval(requestInterval)
             } else {
               this.sendPingAdmins(this.$route.query.team)
             }
-          }, 3000)
+          }, 100)
         })
       }
     }

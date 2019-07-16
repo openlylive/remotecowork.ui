@@ -2,29 +2,29 @@
   <v-layout justify-center>
     <v-flex md6>
       <v-card>
-        <v-form ref="form" v-model="valid" lazy-validation @submit="join">
+        <v-form ref="form" lazy-validation @submit="join">
           <v-card-text>
             <v-card-title class="headline pt-0 pl-0" primary-title>
               Create team
             </v-card-title>
             <div>
-              <v-text-field autofocus box label="Team name" :rules="teamNameRules" required v-model="teamname"hint="A team needs a name" 
-                @input="checkTeamName(teamname)" 
-                :append-icon="teamNameValidIcon" 
+              <v-text-field autofocus box label="Team name" :rules="teamNameRules" required v-model="teamname" hint="A team needs a name" 
+                @input="checkTeamName(teamname)"
+                :append-icon="teamNameValidIcon"
                 :loading="teamNameCheckStatus.checking"
                 :error="teamNameCheckStatus.checked && !teamNameCheckStatus.valid"
-                :error-messages="teamNameCheckStatus.checked && !teamNameCheckStatus.valid ? ['Name unavailable'] : []" 
+                :error-messages="teamNameCheckStatus.checked && !teamNameCheckStatus.valid ? ['Name unavailable'] : []"
                 :success="teamNameCheckStatus.checked && teamNameCheckStatus.valid"
-                :success-messages="valid && teamNameCheckStatus.checked && teamNameCheckStatus.valid ? ['Name available'] : []"></v-text-field>
+                :success-messages="teamNameCheckStatus.checked && teamNameCheckStatus.valid ? ['Name available'] : []"></v-text-field>
 
-              <v-text-field readonly box label="Link" :value="valid ? link : ''"
+              <v-text-field readonly box label="Link" :value="teamNameCheckStatus.valid ? link : ''"
                 hint="Share this link to everyone in this team" persistent-hint append-icon="fa-copy"
                 @click:append="copyUrl"></v-text-field>
             </div>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn :disabled="!valid" type="submit" flat>Join</v-btn>
+            <v-btn :disabled="!teamNameCheckStatus.valid" type="submit" flat>Join</v-btn>
           </v-card-actions>
         </v-form>
       </v-card>

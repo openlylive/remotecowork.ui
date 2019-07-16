@@ -26,7 +26,11 @@ export default {
       'user',
       'userFetched',
       'userKnownInEmbed'
-    ])
+    ]),
+    isMobile () {
+      console.log('checking if mobile')
+      return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
+    }
   },
   mounted () {
     console.log('adding event listeners')

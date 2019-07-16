@@ -13,6 +13,7 @@
             </v-card-text>
             <v-card-actions>
               <v-btn v-on:click="loginWith3Bot" flat>Log in with 3Bot</v-btn>
+              <!-- <v-card-text class="note">This ony works with the newest <br> version of the 3Bot app</v-card-text> -->
               <v-spacer></v-spacer>
               <v-btn :disabled="!valid" type="submit" flat>Send name</v-btn>
             </v-card-actions>
@@ -59,6 +60,6 @@
 
     </v-flex>
   </v-layout>
-  <iframe scrolling="no" id="embeddedlogin" :src='embedded3BotUrl' :class="!userKnownInEmbed ? 'hidden' : ''">
+  <iframe v-if="!isMobile" scrolling="no" id="embeddedlogin" :src='embedded3BotUrl' :class="!userKnownInEmbed ? 'hidden' : ''">
   </iframe>
 </section>

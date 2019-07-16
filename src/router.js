@@ -39,7 +39,8 @@ export default new Router({
       meta: {
         requiresAuth: true,
         redirectable: true
-      }
+      },
+      alias: '/teams'
     },
     {
       path: '/teams/:teamname',
@@ -65,6 +66,10 @@ export default new Router({
       meta: {
         redirectable: false
       }
+    },
+    {
+      path: '*',
+      redirect: '/'
     }
   ]
 })

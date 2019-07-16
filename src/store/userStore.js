@@ -67,7 +67,7 @@ export default ({
       // context.commit('setSymKey', null)
       const id = Math.random().toString(36).substring(7)
       socketService.emit('requestSymKey', {
-        teamname: teamName,
+        teamName: teamName,
         id: id
       })
     },
@@ -117,22 +117,20 @@ export default ({
       // context.commit("setUserName", data.username)
       Axios.get(`${config.threebot_api}/users/${data.username}`).then(response => {
         let verifiedState = crypto.verify3botSignature(data.signedhash, response.data.publicKey)
-        console.log(localStorage.getItem('state'), crypto.bytesToText(verifiedState))
-        if (localStorage.getItem('state') === crypto.bytesToText(verifiedState)) {
+        if (window.localStorage.getItem('state') === crypto.bytesToText(verifiedState)) {
           var ciphertext = {
             ciphertext: crypto.a2b(data.data.ciphertext),
             nonce: crypto.a2b(data.data.nonce)
           }
-          var tempAppKeyPair = JSON.parse(localStorage.getItem('tempAppKeyPair'))
+          var tempAppKeyPair = JSON.parse(window.localStorage.getItem('tempAppKeyPair'))
           var plaintextBody = crypto.openCryptoBox(ciphertext, crypto.edPkToCurve(crypto.a2b(response.data.publicKey)), crypto.toUint8Array(tempAppKeyPair.privateKey))
           plaintextBody = JSON.parse(crypto.bytesToText(plaintextBody))
           var keys = {
-            publicKey: crypto.a2b(plaintextBody.keys.publicKey),
-            privateKey: crypto.a2b(plaintextBody.keys.privateKey)
+            publicKey: crypto.a2b(plaintextBody.keys.derivedPublicKey),
+            privateKey: crypto.a2b(plaintextBody.keys.derivedPrivateKey)
           }
           context.commit('setUserKeys', keys)
           context.dispatch('setUserName', { name: data.username })
-          console.log('all done!')
         } else {
           console.log('Something went wrong')
         }

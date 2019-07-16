@@ -12,8 +12,10 @@ export default ({
     invitationAcceptancePending: false,
     invitationAccepted: false,
     adminRepliedToPing: false,
-    teamMembers: [],
-    teamSettings: {},
+    // teamSettings: {},
+    // teamMembers: {},
+    currentTeam: null,
+    teams: {},
     isRejoining: true,
     teamNameCheckStatus: {
       checking: false,
@@ -25,65 +27,85 @@ export default ({
     adminKey: null
   },
   mutations: {
-    addTeamMembers: (state, user) => {
-      if (!state.teamMembers.some(tm => tm.name === user.name)) state.teamMembers.push(user)
+    addTeamMember: (state, data) => {
+      console.log(cloneDeep(state.teams[data.teamName].members))
+      if (!state.teams[data.teamName].members.length) {
+        state.teams[data.teamName].members.push(data.user)
+        return
+      }
+      if (!state.teams[data.teamName].members.some(tm => tm.name === data.user.name)) {
+        state.teams[data.teamName].members.push(data.user)
+      }
     },
-    deleteTeamMembers: (state, username) => {
-      var index = state.teamMembers.findIndex(user => user.name === username)
-      state.teamMembers.splice(index, 1)
+    deleteTeamMembers: (state, data) => {
+      var index = state.teams[data.teamName].members.findIndex(user => user.name === data.userName)
+      state.teams[data.teamName].members.splice(index, 1)
     },
-    updateTeamMember: (state, user) => {
-      var index = state.teamMembers.findIndex(u => u.name === user.name)
-      state.teamMembers[index] = user
+    updateTeamMember: (state, data) => {
+      var index = state.teams[data.teamName].members.findIndex(u => u.name === data.user.name)
+      state.teams[data.teamName].members[index] = data.user
     },
-    updateTeamMemberLocation: (state, user) => {
-      var index = state.teamMembers.findIndex(u => u.name === user.name)
-      state.teamMembers[index].location = user.location
+    updateTeamMemberLocation: (state, data) => {
+      var index = state.teams[data.teamName].members.findIndex(u => u.name === data.user.name)
+      state.teams[data.teamName].members[index].location = data.user.location
     },
-    disconnectedTeamMembers: (state, username) => { // todo remove and replace with updateteammembmer
-      var index = state.teamMembers.findIndex(user => user.name === username)
-      state.teamMembers[index].online = false
+    disconnectedTeamMembers: (state, data) => { // todo remove and replace with updateteammember
+      var index = state.teams[data.teamName].members.findIndex(user => user.name === data.username)
+      state.teams[data.teamName].members[index].online = false
     },
-    connectedTeamMembers: (state, username) => { // todo remove and replace with updateteammembmer
-      var index = state.teamMembers.findIndex(user => user.name === username)
-      state.teamMembers[index].online = true
+    connectedTeamMembers: (state, data) => { // todo remove and replace with updateteammembmer
+      var index = state.teams[data.teamName].members.findIndex(user => user.name === data.username)
+      state.teams[data.teamName].members[index].online = true
     },
-    setTeamMembers: (state, teamMembers) => {
-      state.teamMembers = teamMembers
+    setTeamMembers: (state, data) => {
+      console.log(data, state.teams[data.teamName])
+      state.teams[data.teamName].members = data.members
     },
     setInvitationStatus: (state, status) => {
       state.invitationAcceptancePending = status.pending
       state.invitationAccepted = status.accepted
     },
     clearHistory: (state) => {
-      state.teamMembers = []
+      // state.teams.teamMembers = []
     },
     isRejoining (state, isRejoining) {
       state.isRejoining = isRejoining
     },
-    setTeamSettings (state, settings) {
-      settings.admins = settings.admins.map(x => {
+    setCurrentTeam (state, data) {
+      state.currentTeam = data
+    },
+    createTeam (state, teamName) {
+      state.teams[teamName] = {
+        members: [],
+        settings: {},
+        symKey: null
+      }
+    },
+    setTeamSettings (state, data) {
+      console.log('set team settings', data)
+      data.settings.admins = data.settings.admins.map(x => {
         return {
           name: x.name
         }
       })
-      state.teamSettings = settings
+      console.log(state.teams, state.teams[data.teamName])
+      state.teams[data.teamName].settings = data.settings
     },
-    setTeamName (state, name) {
-      if (state.teamSettings) {
-        state.teamSettings.name = name
+    // setTeamName(state) {
+    //   if (state.teamSettings) {
+    //     state.teamSettings.name = name
+    //   } else {
+    //     state.teamSettings = {
+    //       name: name
+    //     }
+    //   }
+    // },
+    setSymKey (state, data) {
+      var key = crypto.toUint8Array(data.key)
+      if (state.teams[data.teamName].teamSettings) {
+        state.teams[data.teamName].teamSettings.symKey = key
       } else {
-        state.teamSettings = {
-          name: name
-        }
-      }
-    },
-    setSymKey (state, key) {
-      key = crypto.toUint8Array(key)
-      if (state.teamSettings) {
-        state.teamSettings.symKey = key
-      } else {
-        state.teamSettings = {
+        state.teams[data.teamName].teamSettings = {
           symKey: key
         }
       }
@@ -91,14 +113,14 @@ export default ({
     setAdminRepliedToPing (state) {
       state.adminRepliedToPing = true
     },
-    setTeamAdmin (state, admins) {
-      var newAdmins = admins.map(x => {
+    setTeamAdmin (state, data) {
+      var newAdmins = data.admins.map(x => {
         return {
           name: x.name
         }
       })
       if (state.teamSettings) {
-        state.teamSettings.admins = newAdmins
+        state.teams[data.teamName].teamSettings.admins = newAdmins
       } else {
         state.teamSettings = {
           admins: newAdmins
@@ -126,13 +148,17 @@ export default ({
       })
     },
     accessGrantedKnown: async (context, payload) => { // TODO cleanup
+      console.log(payload.body)
       const symkey = payload.body
       var admin = {
         name: payload.from
       }
       context.commit('setTeamSettings', {
-        admins: [admin],
-        symKey: new Uint8Array(Object.values(symkey))
+        settings: {
+          admins: [admin],
+          symKey: new Uint8Array(Object.values(symkey))
+        },
+        teamName: payload.teamName
       })
       context.commit('isRejoining', true)
       context.commit('setInvitationStatus', {
@@ -141,13 +167,12 @@ export default ({
       })
     },
     accessGranted: async (context, payload) => {
-      const symkey = payload.body
       var admin = {
         name: payload.from
       }
       context.commit('setTeamSettings', {
         admins: [admin],
-        symKey: new Uint8Array(Object.values(symkey))
+        symKey: new Uint8Array(Object.values(payload.body.symkey))
       })
       context.commit('isRejoining', false)
       context.commit('setInvitationStatus', {
@@ -173,17 +198,18 @@ export default ({
       })
     },
     acceptUser: (context, payload) => {
+      console.log(payload)
       context.commit('setAcceptedWait', true)
-      const symKey = context.getters['teamSettings'].symKey
+      const symKey = context.getters.teams[payload.body.team].settings.symKey
       userService.getUserInfo(payload.user).then(async response => {
         var pubKey = crypto.toUint8Array(response.data.publicKey)
-        const encryptedSymKeyB = await crypto.createCryptoBox(symKey, pubKey, context.getters['user'].privateKey)
+        const encryptedSymKeyB = await crypto.createCryptoBox(symKey, pubKey, context.getters.user.privateKey)
         socketService.sendSignal({
           type: 'accessGranted',
           body: encryptedSymKeyB,
           to: payload.user
         })
-        const admins = context.getters['teamSettings'].admins
+        const admins = context.getters.teams[payload.teamName].admins
         admins.forEach(admin => {
           context.dispatch('sendSignal', {
             to: admin.name,
@@ -196,9 +222,10 @@ export default ({
       })
     },
     createTeam: async (context, payload) => {
+      console.log(payload)
       var me = context.getters['user']
 
-      context.commit('clearHistory', [])
+      // context.commit('clearHistory', [])
       var newMe = {
         name: me.name,
         publicKey: me.publicKey,
@@ -208,15 +235,26 @@ export default ({
         online: true,
         muted: false
       }
+      context.commit('createTeam', payload)
+      console.log(context.getters.teams)
+      setTimeout(() => {
+        console.log(context.getters.teams[payload])
+      }, 1000)
+      context.commit('setCurrentTeam', context.getters.teams[payload])
       context.commit('setTeamSettings', {
-        name: payload,
-        admins: [newMe],
-        symKey: crypto.generateSecretBoxKey()
+        teamName: payload,
+        settings: {
+          name: payload,
+          admins: [newMe],
+          symKey: crypto.generateSecretBoxKey()
+        }
       })
       socketService.emit('createTeam', { name: payload, admins: [newMe] })
       context.commit('isRejoining', false)
-
-      context.commit('addTeamMembers', newMe)
+      context.commit('addTeamMember', {
+        teamName: payload,
+        user: newMe
+      })
     },
     ping (context, payload) {
       console.log('got ping', context, payload)
@@ -231,9 +269,12 @@ export default ({
       context.commit('setAdminRepliedToPing')
     },
     requestSymKey (context, payload) {
-      const symKey = context.getters['teamSettings'].symKey
-      const teamMmebers = context.getters['teamMembers']
-      const isKnown = !!teamMmebers.find(tm => tm.name === payload.from)
+      console.log(payload)
+      const symKey = context.getters.teams[payload.teamName].settings.symKey
+      const teamMembers = context.getters.teams[payload.teamName].members
+      // const teamName = payload.body.teamName
+
+      const isKnown = !!teamMembers.find(tm => tm.name === payload.from)
       if (isKnown) { // If user is already member of team
         userService.getUserInfo(payload.from).then(async response => {
           var pubKey = crypto.toUint8Array(response.data.publicKey)
@@ -250,9 +291,9 @@ export default ({
         context.commit('addPromptMessage', {
           id: payload.body.id,
           title: 'Permission requested',
-          body: `User <strong>${window.escapeHtml(payload.from)}</strong> wants to access <strong>${window.escapeHtml(payload.body.teamname)}</strong>`,
+          body: `User <strong>${window.escapeHtml(payload.from)}</strong>s wants to access <strong>${window.escapeHtml(payload.body.teamName)}</strong>`,
           cancelMessage: 'Close the gates',
-          okMessage: 'Let him in',
+          okMessage: `Open the gates`,
           okAction: 'acceptUser',
           cancelAction: 'rejectUser',
           payload: {
@@ -282,7 +323,7 @@ export default ({
           muted: false
         })
         if (newUser.name === user.name) return
-        context.commit('addTeamMembers', newUser)
+        context.commit('addTeamMember', { teamName: context.getters['currentTeam'].name, user: newUser })
         var currentBridges = context.getters.currentBridges
         if (currentBridges[newUser.location] === undefined) {
           if (!context.getters.janusrtpfwd[newUser.location]) {
@@ -328,9 +369,9 @@ export default ({
     userlist (context, payload) {
       return new Promise((resolve, reject) => {
         var teamMembers = payload.body.list
-        context.commit('setTeamName', payload.body.name)
-        context.commit('setTeamMembers', teamMembers)
-        if (teamMembers.length === 1) resolve()
+        // context.commit('setTeamName', payload.body.name)
+        context.commit('setTeamMembers', { teamName: payload.teamName, members: teamMembers })
+        if (teamMembers.length === 1) { resolve() }
         var localUser = context.getters.user
         var filtered = teamMembers.filter(t => t.name !== localUser.name && t.online)
         if (!context.getters.someoneScreenSharing) context.commit('setNoiseMaker', filtered[0])
@@ -351,10 +392,13 @@ export default ({
         }
 
         context.commit('setTeamAdmin', teamMembers.filter(tm => tm.admin).map(x => { return { name: x.name } }))
-        context.commit('addTeamMembers', {
-          ...context.getters.user,
-          online: true,
-          muted: false
+        context.commit('addTeamMember', {
+          teamName: payload.body.name,
+          user: {
+            ...context.getters.user,
+            online: true,
+            muted: false
+          }
         })
         if (context.getters['isRejoining']) {
           context.dispatch('sendRejoin')
@@ -364,15 +408,17 @@ export default ({
     },
     async userInitialized (context, payload) {
       return new Promise((resolve, reject) => {
-        var newSymKey = context.getters['teamSettings'].symKey // todo change?
-        var teamName = context.getters['teamSettings'].name
-        var teammembers = context.getters['teamMembers']
+        console.log(payload)
+        const team = context.getters.teams[payload.teamName]
+        console.log(team)
+        var newSymKey = team.settings.symKey // todo change?
+        var teammembers = team.members
         userService.getUserInfo(payload.from).then(userInfo => {
           context.dispatch('sendSignal', {
             type: 'userlist',
+            teamName: payload.teamName,
             body: {
-              list: teammembers,
-              name: teamName
+              list: teammembers
             },
             to: payload.from
           })
@@ -390,7 +436,7 @@ export default ({
                 to: teammember.name
               })
             })
-            context.commit('addTeamMembers', userInfo.data)
+            context.commit('addTeamMember', { teamName: payload.teamName, user: userInfo.data })
             context.commit('setAcceptedWait', false)
           } else if (teammembers.find(t => t.name === payload.from && t.admin && t.name !== context.getters['user'].name)) {
             context.commit('connectedTeamMembers', payload.from)
@@ -404,7 +450,8 @@ export default ({
     },
     userLeft (context, payload) {
       // TODO close some bridges if needed and cleanup janus
-      var teamMembers = context.getters['teamMembers']
+      const team = context.getters['teams'][payload.teamName]
+      var teamMembers = team.members
       if (teamMembers.find(x => x.name === payload.from)) {
         context.commit('deleteTeamMembers', payload.from)
         context.commit('addMessageToHistory', {
@@ -412,7 +459,7 @@ export default ({
           body: `User ${payload.from} left`
         })
         if (context.getters['janusstreamingplugin'][payload.from]) {
-          context.getters['janusstreamingplugin'][payload.from].send({ 'message': { 'request': 'stop' } })
+          context.getters['janusstreamingplugin'][payload.from].send({ message: { request: 'stop' } })
           context.getters['janusstreamingplugin'][payload.from].hangup()
           context.getters['janusstreamingplugin'][payload.from].detach()
           delete context.getters['janusstreamingplugin'][payload.from]
@@ -451,9 +498,9 @@ export default ({
           type: 'systemMessage',
           body: `User ${payload.from} is now offline`
         })
-        var body = { 'request': 'stop' }
+        var body = { request: 'stop' }
         if (context.getters['janusstreamingplugin'][payload.from]) {
-          context.getters['janusstreamingplugin'][payload.from].send({ 'message': body })
+          context.getters['janusstreamingplugin'][payload.from].send({ message: body })
           context.getters['janusstreamingplugin'][payload.from].hangup()
           context.getters['janusstreamingplugin'][payload.from].detach()
           delete context.getters['janusstreamingplugin'][payload.from]
@@ -465,7 +512,7 @@ export default ({
       }
     },
     leaveTeam (context, teamName) {
-      context.commit('clearHistory')
+      // context.commit('clearHistory')
       socketService.emit('leave', {})
     },
     sendRejoin (context, teamName) {
@@ -491,7 +538,7 @@ export default ({
         // todo rewrite bridges
         var username = payload.body.username
         if (context.getters.teamMembers.find(x => x.name === username)) {
-          context.commit('connectedTeamMembers', username)
+          context.commit('connectedTeamMembers', { teamName: context.getters.currentTeam.name, username: username })
           context.commit('addMessageToHistory', {
             type: 'systemMessage',
             body: `User ${username} is now online`
@@ -559,7 +606,8 @@ export default ({
         accepted: false
       })
       context.commit('setTeamSettings', payload.settings)
-      context.commit('setTeamMembers', payload.list)
+      console.log(payload)
+      context.commit('setTeamMembers', { teamName: payload.teamName, members: payload.list })
       context.commit('setInvitationStatus', {
         pending: false,
         accepted: true
@@ -632,7 +680,9 @@ export default ({
     }
   },
   getters: {
-    teamMembers: (state) => state.teamMembers,
+    teams: (state) => state.teams,
+    currentTeam: (state) => state.currentTeam,
+    // teamMembers: (state) => state.teamMembers,
     invitationStatus: (state) => {
       return {
         adminRepliedToPing: state.adminRepliedToPing,

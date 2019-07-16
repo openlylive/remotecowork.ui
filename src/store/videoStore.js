@@ -125,7 +125,7 @@ export default ({
       if (document.getElementById('bigScreen')) document.getElementById('bigScreen').srcObject = data.stream
     },
     fixBigscreenStream: (context, data) => {
-      var teamMembers = context.getters.teamMembers.filter(t => t.online && t.name !== context.getters.user.name)
+      var teamMembers = context.getters.currentTeam.members.filter(t => t.online && t.name !== context.getters.user.name)
       if (teamMembers.length > 0) {
         context.commit('setNoiseMaker', teamMembers[0])
         context.dispatch('setBigscreenStream', { stream: document.getElementById(teamMembers[0].streamId).srcObject, desktop: false })
@@ -227,13 +227,13 @@ export default ({
       })
     },
     sendInitialized: (context) => {
-      var admins = context.getters.teamSettings.admins
+      var admins = context.getters.currentTeam.settings.admins
       if (admins && admins.length) {
-        const me = context.getters['user']
+        const me = context.getters.user
         if (admins.find(t => t.name === me.name) && !admins.some(x => x.name !== me.name)) {
-          socketService.sendSignal({ to: me.name, type: 'userInitialized', body: '' })
+          socketService.sendSignal({ to: me.name, type: 'userInitialized', teamName: context.getters.currentTeam.settings.name, body: '' })
         } else {
-          socketService.sendSignal({ to: admins[0].name, type: 'userInitialized', body: '' })
+          socketService.sendSignal({ to: admins[0].name, type: 'userInitialized', teamName: context.getters.currentTeam.settings.name, body: '' })
         }
       }
     },
@@ -334,7 +334,7 @@ export default ({
                 }
               }
             } else {
-              context.commit('setErrorMessage', { text: `For screensharing in Chrome, you should install the Janus WebRTC Extension: https://chrome.google.com/webstore/detail/janus-webrtc-screensharin/hapfgfdkleiggjjpfpenajgdnfckjpaj?hl=en` })
+              context.commit('setErrorMessage', { text: `For screensharing in <h1>Chrome</h1>, you should install the Janus WebRTC Extension: https://chrome.google.com/webstore/detail/janus-webrtc-screensharin/hapfgfdkleiggjjpfpenajgdnfckjpaj?hl=en` })
             }
           })
         }

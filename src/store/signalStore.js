@@ -7,7 +7,7 @@ import userService from '../services/userService'
 
 Vue.use(Vuex)
 
-const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft', 'ping', 'pongAdminRequest', 'userInitialized']
+const noNeedForDecryption = ['userDisconnected', 'requestSymKey', 'userLeft', 'ping', 'pongAdminRequest', 'userInitialized', 'accessDeclined']
 
 export default ({
   state: {
@@ -20,14 +20,17 @@ export default ({
   },
   actions: {
     SOCKET_signal: (context, message) => {
-      // console.log('SIGNAL!', message)
-      const teamKey = context.getters['teamSettings'].symKey
-      const privKey = context.getters.user.privateKey
+      console.log('SIGNAL!', message)
+      // console.log(context.getters.teams)
       if (noNeedForDecryption.includes(message.type)) {
         context.commit('addToQueue', () => {
           return context.dispatch(message.type, message)
         })
-      } else if (!teamKey) {
+        return
+      }
+      const teamKey = context.getters.teams[message.teamName].settings.symKey
+      const privKey = context.getters.user.privateKey
+      if (!teamKey) {
         userService.getUserInfo(message.from).then((userinfo) => {
           const decrypted = crypto.openCryptoBox(message.body, crypto.toUint8Array(userinfo.data.publicKey), privKey)
           message.body = decrypted
@@ -36,6 +39,7 @@ export default ({
           })
         })
       } else {
+        console.log(message)
         var x = crypto.openSecretBox(JSON.parse(message.body), teamKey)
         crypto.bytesToText(x)
         if (x) {
@@ -47,7 +51,8 @@ export default ({
       }
     },
     sendSignal: (context, signal) => {
-      const teamKey = context.getters['teamSettings'].symKey
+      const teamKey = context.getters.teams[signal.teamName].settings.symKey
+
       var ken = crypto.createSecretBox(JSON.stringify(signal.body), teamKey)
       signal.body = JSON.stringify(ken)
       socketService.sendSignal(signal)

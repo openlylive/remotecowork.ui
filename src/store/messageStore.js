@@ -11,9 +11,6 @@ export default ({
   mutations: {
     addMessageToHistory: (state, message) => {
       state.messages.push(message)
-    },
-    clearHistory: (state) => {
-      state.messages = []
     }
   },
   actions: {

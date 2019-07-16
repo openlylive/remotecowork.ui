@@ -14,9 +14,9 @@ export default function createPlugin () {
         // console.log('Setting localstorage:', JSON.stringify(newUser))
         window.localStorage.setItem('user', JSON.stringify(newUser))
       } else if (['setTeamName', 'setTeamSettings', 'setSymKey', 'setTeamAdmin'].includes(mutation.type)) {
-        window.localStorage.setItem('teamsettings', JSON.stringify(state.team.teamSettings))
-      } else if (['addTeamMembers', 'deleteTeamMembers', 'updateTeamMember', 'updateTeamMemberLocation', 'disconnectedTeamMembers', 'connectedTeamMembers', 'setTeamMembers', 'clearHistory'].includes(mutation.type)) {
-        window.localStorage.setItem('teammembers', JSON.stringify(state.team.teamMembers))
+        window.localStorage.setItem('teamsettings', JSON.stringify(state.team.currentTeam.teamSettings))
+      } else if (['addTeamMember', 'deleteTeamMembers', 'updateTeamMember', 'updateTeamMemberLocation', 'disconnectedTeamMembers', 'connectedTeamMembers', 'setTeamMembers'].includes(mutation.type)) {
+        window.localStorage.setItem('teammembers', JSON.stringify(state.team.currentTeam.teamMembers))
       }
     })
   }
