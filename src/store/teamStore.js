@@ -91,15 +91,9 @@ export default ({
       console.log(state.teams, state.teams[data.teamName])
       state.teams[data.teamName].settings = data.settings
     },
-    // setTeamName(state) {
-    //   if (state.teamSettings) {
-    //     state.teamSettings.name = name
-    //   } else {
-    //     state.teamSettings = {
-    //       name: name
-    //     }
-    //   }
-    // },
+    setAllTeamSettings (state, data) {
+      state.teams = data
+    },
     setSymKey (state, data) {
       var key = crypto.toUint8Array(data.key)
       if (state.teams[data.teamName].teamSettings) {
@@ -184,39 +178,44 @@ export default ({
       socketService.sendSignal({
         type: 'accessDeclined',
         body: '',
-        to: payload.user
+        to: payload.user,
+        teamName: payload.team
       })
-      const admins = context.getters['teamSettings'].admins
+      const admins = context.getters.teams[payload.team].settings.admins
       admins.forEach(admin => {
         context.dispatch('sendSignal', {
           to: admin.name,
           type: 'deletePrompt',
           body: {
             id: payload.id
-          }
+          },
+          teamName: payload.team
         })
       })
     },
     acceptUser: (context, payload) => {
       console.log(payload)
       context.commit('setAcceptedWait', true)
-      const symKey = context.getters.teams[payload.body.team].settings.symKey
+      const symKey = context.getters.teams[payload.team].settings.symKey
       userService.getUserInfo(payload.user).then(async response => {
         var pubKey = crypto.toUint8Array(response.data.publicKey)
         const encryptedSymKeyB = await crypto.createCryptoBox(symKey, pubKey, context.getters.user.privateKey)
         socketService.sendSignal({
           type: 'accessGranted',
           body: encryptedSymKeyB,
-          to: payload.user
+          to: payload.user,
+          teamName: payload.team
         })
-        const admins = context.getters.teams[payload.teamName].admins
+
+        const admins = context.getters.teams[payload.team].settings.admins
         admins.forEach(admin => {
           context.dispatch('sendSignal', {
             to: admin.name,
             type: 'deletePrompt',
             body: {
               id: payload.id
-            }
+            },
+            teamName: payload.team
           })
         })
       })
@@ -409,6 +408,7 @@ export default ({
     async userInitialized (context, payload) {
       return new Promise((resolve, reject) => {
         console.log(payload)
+        console.log(context.getters.teams)
         const team = context.getters.teams[payload.teamName]
         console.log(team)
         var newSymKey = team.settings.symKey // todo change?
@@ -491,7 +491,7 @@ export default ({
     },
     userDisconnected (context, payload) {
       // TODO close some bridges if needed and cleanup janus
-      var teamMembers = context.getters['teamMembers']
+      var teamMembers = context.getters.teams[payload.teamName].members
       if (teamMembers.find(x => x.name === payload.from)) {
         context.commit('disconnectedTeamMembers', payload.from)
         context.commit('addMessageToHistory', {
@@ -605,13 +605,17 @@ export default ({
         pending: true,
         accepted: false
       })
-      context.commit('setTeamSettings', payload.settings)
+      context.commit('setAllTeamSettings', payload)
+      // context.commit('setTeamSettings', payload.settings)
       console.log(payload)
-      context.commit('setTeamMembers', { teamName: payload.teamName, members: payload.list })
+      // context.commit('setTeamMembers', { teamName: payload.teamName, members: payload.list })
       context.commit('setInvitationStatus', {
         pending: false,
         accepted: true
       })
+    },
+    setCurrentTeam (context, data) {
+      context.commit('setCurrentTeam', data)
     },
     checkTeamName (context, teamname) {
       var reg = new RegExp(/^(\w+)$/)

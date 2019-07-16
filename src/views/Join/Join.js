@@ -26,22 +26,32 @@ export default {
     }
   },
   mounted () {
-    const teamSettings = JSON.parse(window.localStorage.getItem('teamsettings'))
-    console.log(teamSettings)
+    const teams = JSON.parse(window.localStorage.getItem('teamsettings'))
+    console.log(teams)
+    var joiningTeam
+    if (teams !== null && this.$route.query.team in teams) { joiningTeam = teams[this.$route.query.team] }
+
     if (this.$route.query.team &&
-      teamSettings !== undefined &&
-      teamSettings && teamSettings.name &&
-      teamSettings.admins && teamSettings.admins.length &&
-      teamSettings.admins.find(a => a.name === this.user.name) &&
-      teamSettings.name.toLowerCase() === this.$route.query.team.toLowerCase()) {
-      teamSettings.symKey = crypto.toUint8Array(teamSettings.symKey)
-      var list = JSON.parse(window.localStorage.getItem('teammembers'))
-      list.find(user => user.name === this.user.name).online = true
-      this.previousTeamSettings({
-        settings: teamSettings,
-        list: list
+      joiningTeam !== undefined &&
+      joiningTeam && joiningTeam.settings.name &&
+      joiningTeam.settings.admins && joiningTeam.settings.admins.length &&
+      joiningTeam.settings.admins.find(a => a.name === this.user.name) &&
+      joiningTeam.settings.name.toLowerCase() === this.$route.query.team.toLowerCase()) {
+      // teamSettings.symKey = crypto.toUint8Array(teamSettings.symKey)
+      // var list = JSON.parse(window.localStorage.getItem('teammembers'))
+      // list.find(user => user.name === this.user.name).online = true
+      // this.previousTeamSettings({
+      //   settings: teamSettings,
+      //   list: list
+      // })
+      console.log('wookeiwooo', teams)
+      Object.keys(teams).forEach(team => {
+        console.log(team)
+        teams[team].settings.symKey = crypto.toUint8Array(teams[team].settings.symKey)
       })
-      this.$router.push({ name: 'team', params: { teamname: teamSettings.name } })
+      this.previousTeamSettings(teams)
+      this.setCurrentTeam(joiningTeam)
+      this.$router.push({ name: 'team', params: { teamname: joiningTeam.settings.name } })
     } else {
       // is not a admin
       if (this.$route.query.team) {
@@ -65,7 +75,8 @@ export default {
       'setSnackbarMessage',
       'sendSymKeyRequest',
       'sendPingAdmins',
-      'previousTeamSettings'
+      'previousTeamSettings',
+      'setCurrentTeam'
     ])
   },
   watch: {
