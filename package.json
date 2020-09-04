@@ -17,7 +17,7 @@
     "emoji-mart-vue": "^2.6.6",
     "js-cookie": "^2.2.0",
     "lodash": "^4.17.11",
-    "marked": "^0.6.2",
+    "marked": "^0.7.0",
     "moment": "^2.23.0",
     "node-rsa": "^1.0.3",
     "prismjs": "^1.15.0",
